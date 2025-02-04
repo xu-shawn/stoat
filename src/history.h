@@ -88,6 +88,9 @@ namespace stoat {
         }
 
         [[nodiscard]] inline auto quietScore(Color color, Move move) const -> i32 {
+            if (move.isDrop())
+                return 0;
+
             return mainEntry(color, move);
         }
 

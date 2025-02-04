@@ -23,10 +23,10 @@
 namespace stoat {
     void MoveGenerator::sortQuiets() {
         std::stable_sort(
-            m_moves.begin() + m_idx,
-            m_moves.end(),
-            [&pos = m_pos, &history = m_history](const Move& lhs, const Move& rhs) {
-                return history.quietScore(pos.stm(), lhs) > history.quietScore(pos.stm(), rhs);
+            m_moves.begin() + m_idx, //
+            m_moves.end(),           //
+            [this](const Move& lhs, const Move& rhs) {
+                return m_history.quietScore(m_pos.stm(), lhs) > m_history.quietScore(m_pos.stm(), rhs);
             }
         );
     }
