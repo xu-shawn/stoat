@@ -19,6 +19,7 @@
 #include "movepick.h"
 #include "bitboard.h"
 #include "core.h"
+#include "see.h"
 
 namespace stoat {
     Move MoveGenerator::next() {
@@ -63,9 +64,7 @@ namespace stoat {
                         if (move == m_ttMove)
                             return false;
 
-                        if ((move.dropPiece() == PieceTypes::kRook || move.dropPiece() == PieceTypes::kBishop)
-                            && !m_pos.threats().getSquare(move.to()))
-                        {
+                        if (m_pos.threats().getSquare(move.to()) && see::see(m_pos, move, 200)) {
                             return true;
                         }
 
