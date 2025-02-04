@@ -439,7 +439,11 @@ namespace stoat {
             } else if (sennichite == SennichiteStatus::kDraw) {
                 score = drawScore(thread.loadNodes());
             } else {
-                const auto newDepth = depth - 1;
+                auto newDepth = depth - 1;
+                const auto inCheck = !pos.checkers().empty();
+
+                if (inCheck)
+                    newDepth++;
 
                 if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::NonCaptures) {
                     auto r = baseLmr;
