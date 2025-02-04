@@ -212,7 +212,7 @@ namespace stoat::protocol {
         const auto stm = split[1] == "w" ? 'b' : 'w';
         const auto fullmove = (pos.moveCount() + 1) / 2;
 
-        stream << split[0] << '[' << split[2] << "] " << stm << " - - 0 " << fullmove;
+        stream << split[0] << '[' << split[2] << "] " << stm << " - " << fullmove;
     }
 
     void UciHandler::printMove(std::ostream& stream, Move move) const {
