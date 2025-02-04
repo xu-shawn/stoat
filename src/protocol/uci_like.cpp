@@ -43,6 +43,7 @@ namespace stoat::protocol {
 
         REGISTER_HANDLER(d);
         REGISTER_HANDLER(splitperft);
+        REGISTER_HANDLER(threats);
 
 #undef REGISTER_HANDLER
     }
@@ -492,5 +493,12 @@ namespace stoat::protocol {
         if (const auto depth = util::tryParse<i32>(args[0])) {
             splitPerft(m_state.pos, *depth);
         }
+    }
+
+    void UciLikeHandler::handle_threats(
+        [[maybe_unused]] std::span<std::string_view> args,
+        [[maybe_unused]] util::Instant startTime
+    ) {
+        std::cout << m_state.pos.threats() << std::endl;
     }
 } // namespace stoat::protocol

@@ -795,6 +795,7 @@ namespace stoat {
 
         m_checkers = attackersTo(king(stm), nstm);
         m_pinned = Bitboards::kEmpty;
+        m_threats = Bitboards::kEmpty;
 
         const auto stmKing = king(stm);
 
@@ -804,6 +805,8 @@ namespace stoat {
         const auto nstmLances = pieceBb(PieceTypes::kLance, nstm);
         const auto nstmBishops = pieceBb(PieceTypes::kBishop, nstm) | pieceBb(PieceTypes::kPromotedBishop, nstm);
         const auto nstmRooks = pieceBb(PieceTypes::kRook, nstm) | pieceBb(PieceTypes::kPromotedRook, nstm);
+
+        // ===================== pinned =====================
 
         auto potentialAttackers = (attacks::lanceAttacks(stmKing, stm, nstmOcc) & nstmLances)
                                 | (attacks::bishopAttacks(stmKing, nstmOcc) & nstmBishops)
@@ -815,6 +818,65 @@ namespace stoat {
             if (maybePinned.one()) {
                 m_pinned |= maybePinned;
             }
+        }
+
+        // ===================== threats =====================
+
+        const auto occ = occupancy();
+
+        const auto nstmGolds = pieceBb(PieceTypes::kGold, nstm) | pieceBb(PieceTypes::kPromotedPawn, nstm)
+                             | pieceBb(PieceTypes::kPromotedLance, nstm) | pieceBb(PieceTypes::kPromotedKnight, nstm)
+                             | pieceBb(PieceTypes::kPromotedSilver, nstm);
+
+        const auto nstmKings = pieceBb(PieceTypes::kKing, nstm) | pieceBb(PieceTypes::kPromotedBishop, nstm)
+                             | pieceBb(PieceTypes::kPromotedRook, nstm);
+
+        auto pawns = pieceBb(PieceTypes::kPawn, nstm);
+        while (!pawns.empty()) {
+            const auto pawn = pawns.popLsb();
+            m_threats |= attacks::pawnAttacks(pawn, nstm);
+        }
+
+        auto lances = pieceBb(PieceTypes::kLance, nstm);
+        while (!lances.empty()) {
+            const auto lance = lances.popLsb();
+            m_threats |= attacks::lanceAttacks(lance, nstm, occ);
+        }
+
+        auto knights = pieceBb(PieceTypes::kKnight, nstm);
+        while (!knights.empty()) {
+            const auto knight = knights.popLsb();
+            m_threats |= attacks::knightAttacks(knight, nstm);
+        }
+
+        auto silvers = pieceBb(PieceTypes::kSilver, nstm);
+        while (!silvers.empty()) {
+            const auto silver = silvers.popLsb();
+            m_threats |= attacks::silverAttacks(silver, nstm);
+        }
+
+        auto golds = nstmGolds;
+        while (!golds.empty()) {
+            const auto gold = golds.popLsb();
+            m_threats |= attacks::goldAttacks(gold, nstm);
+        }
+
+        auto bishops = nstmBishops;
+        while (!bishops.empty()) {
+            const auto bishop = bishops.popLsb();
+            m_threats |= attacks::bishopAttacks(bishop, occ);
+        }
+
+        auto rooks = nstmRooks;
+        while (!rooks.empty()) {
+            const auto rook = rooks.popLsb();
+            m_threats |= attacks::rookAttacks(rook, occ);
+        }
+
+        auto kings = nstmKings;
+        while (!kings.empty()) {
+            const auto king = kings.popLsb();
+            m_threats |= attacks::kingAttacks(king);
         }
     }
 

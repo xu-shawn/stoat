@@ -150,6 +150,10 @@ namespace stoat {
             return m_pinned;
         }
 
+        [[nodiscard]] inline Bitboard threats() const {
+            return m_threats;
+        }
+
         [[nodiscard]] inline Color stm() const {
             return m_stm;
         }
@@ -214,6 +218,7 @@ namespace stoat {
 
         Bitboard m_checkers{};
         Bitboard m_pinned{};
+        Bitboard m_threats{};
 
         Color m_stm{Colors::kBlack};
 
