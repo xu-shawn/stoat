@@ -83,5 +83,7 @@ namespace stoat {
 
         usize m_idx{};
         usize m_end{};
+
+        usize m_begin_bad_drops{};
     };
 } // namespace stoat

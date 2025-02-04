@@ -57,7 +57,13 @@ namespace stoat {
             }
 
             case MovegenStage::Drops: {
-                if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
+                if (const auto move = selectNext([this](Move move) {
+                        if (move != m_ttMove)
+                            return false;
+
+                        if (pos)
+                    }))
+                {
                     return move;
                 }
 
