@@ -17,8 +17,20 @@
  */
 
 #include "movepick.h"
+#include "history.h"
+#include <algorithm>
 
 namespace stoat {
+    void MoveGenerator::sortQuiets() {
+        std::stable_sort(
+            m_moves.begin() + m_idx,
+            m_moves.begin() + m_end,
+            [&pos = m_pos, &history = m_history](const Move& lhs, const Move& rhs) {
+                return history.quietScore(pos.stm(), lhs) > history.quietScore(pos.stm(), rhs);
+            }
+        );
+    }
+
     Move MoveGenerator::next() {
         switch (m_stage) {
             case MovegenStage::TtMove: {
@@ -51,6 +63,7 @@ namespace stoat {
             case MovegenStage::GenerateNonCaptures: {
                 movegen::generateNonCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
+                sortQuiets();
 
                 ++m_stage;
                 [[fallthrough]];
@@ -87,14 +100,19 @@ namespace stoat {
         }
     }
 
-    MoveGenerator MoveGenerator::main(const Position& pos, Move ttMove) {
-        return MoveGenerator{MovegenStage::TtMove, pos, ttMove};
+    MoveGenerator MoveGenerator::main(const Position& pos, const HistoryTables& history, Move ttMove) {
+        return MoveGenerator{MovegenStage::TtMove, pos, history, ttMove};
     }
 
-    MoveGenerator MoveGenerator::qsearch(const Position& pos) {
-        return MoveGenerator{MovegenStage::QsearchGenerateCaptures, pos, kNullMove};
+    MoveGenerator MoveGenerator::qsearch(const Position& pos, const HistoryTables& history) {
+        return MoveGenerator{MovegenStage::QsearchGenerateCaptures, pos, history, kNullMove};
     }
 
-    MoveGenerator::MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove) :
-            m_stage{initialStage}, m_pos{pos}, m_ttMove{ttMove} {}
+    MoveGenerator::MoveGenerator(
+        MovegenStage initialStage,
+        const Position& pos,
+        const HistoryTables& history,
+        Move ttMove
+    ) :
+            m_stage{initialStage}, m_pos{pos}, m_history(history), m_ttMove{ttMove} {}
 } // namespace stoat

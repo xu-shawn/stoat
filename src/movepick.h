@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "history.h"
 #include "types.h"
 
 #include <compare>
@@ -55,11 +56,11 @@ namespace stoat {
             return m_stage;
         }
 
-        [[nodiscard]] static MoveGenerator main(const Position& pos, Move ttMove);
-        [[nodiscard]] static MoveGenerator qsearch(const Position& pos);
+        [[nodiscard]] static MoveGenerator main(const Position& pos, const HistoryTables& history, Move ttMove);
+        [[nodiscard]] static MoveGenerator qsearch(const Position& pos, const HistoryTables& history);
 
     private:
-        MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove);
+        MoveGenerator(MovegenStage initialStage, const Position& pos, const HistoryTables& history, Move ttMove);
 
         [[nodiscard]] inline Move selectNext(auto predicate) {
             while (m_idx < m_end) {
@@ -72,10 +73,14 @@ namespace stoat {
             return kNullMove;
         }
 
+        void sortQuiets();
+
         MovegenStage m_stage;
 
         const Position& m_pos;
         movegen::MoveList m_moves{};
+
+        const HistoryTables& m_history;
 
         Move m_ttMove;
 

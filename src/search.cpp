@@ -22,10 +22,13 @@
 #include <cmath>
 
 #include "eval/eval.h"
+#include "history.h"
+#include "move.h"
 #include "movepick.h"
 #include "protocol/handler.h"
 #include "see.h"
 #include "util/multi_array.h"
+#include "util/static_vector.h"
 
 namespace stoat {
     namespace {
@@ -397,9 +400,11 @@ namespace stoat {
 
         auto ttFlag = tt::Flag::kUpperBound;
 
-        auto generator = MoveGenerator::main(pos, ttEntry.move);
+        auto generator = MoveGenerator::main(pos, thread.history, ttEntry.move);
 
         u32 legalMoves{};
+
+        util::StaticVector<Move, 32> quietsSearched;
 
         while (const auto move = generator.next()) {
             assert(pos.isPseudolegal(move));
@@ -413,10 +418,13 @@ namespace stoat {
                 continue;
             }
 
+            const auto capture = pos.isCapture(move);
+            const auto drop = move.isDrop();
+
             const auto baseLmr = s_lmrTable[depth][std::min<u32>(legalMoves, 63)];
 
             if (!kRootNode && bestScore > -kScoreWin) {
-                const auto seeThreshold = pos.isCapture(move) ? -100 * depth * depth : -20 * depth * depth;
+                const auto seeThreshold = capture ? -100 * depth * depth : -20 * depth * depth;
                 if (!see::see(pos, move, seeThreshold)) {
                     continue;
                 }
@@ -493,11 +501,21 @@ namespace stoat {
                 ttFlag = tt::Flag::kLowerBound;
                 break;
             }
+
+            if (!capture && !drop)
+                quietsSearched.push(move);
         }
 
         if (legalMoves == 0) {
             assert(!kRootNode);
             return -kScoreMate + ply;
+        }
+
+        if (bestScore >= beta && !pos.isCapture(bestMove) && !bestMove.isDrop()) {
+            thread.history.updateQuietScore(pos.stm(), bestMove, historyBonus(depth));
+
+            for (const auto move : quietsSearched)
+                thread.history.updateQuietScore(pos.stm(), move, -historyPenalty(depth));
         }
 
         m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag);
@@ -538,7 +556,7 @@ namespace stoat {
 
         auto bestScore = staticEval;
 
-        auto generator = MoveGenerator::qsearch(pos);
+        auto generator = MoveGenerator::qsearch(pos, thread.history);
 
         while (const auto move = generator.next()) {
             assert(pos.isPseudolegal(move));
