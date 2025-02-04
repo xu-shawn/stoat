@@ -314,9 +314,26 @@ namespace stoat::movegen {
         generate<false>(dst, pos, dstMask);
     }
 
-    void generateNonCaptures(MoveList& dst, const Position& pos) {
+    void generateDrops(MoveList& dst, const Position& pos) {
+        auto dropMask = ~pos.occupancy();
+
+        if (pos.checkers().multiple()) {
+            return;
+        }
+
+        if (!pos.checkers().empty()) {
+            const auto checker = pos.checkers().lsb();
+            const auto checkRay = rayBetween(pos.king(pos.stm()), checker);
+
+            dropMask &= checkRay;
+        }
+
+        generateDrops(dst, pos, dropMask);
+    }
+
+    void generateQuiets(MoveList& dst, const Position& pos) {
         const auto dstMask = ~pos.occupancy();
-        generate<true>(dst, pos, dstMask);
+        generate<false>(dst, pos, dstMask);
     }
 
     void generateRecaptures(MoveList& dst, const Position& pos, Square captureSq) {

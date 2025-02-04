@@ -29,6 +29,7 @@ namespace stoat::movegen {
 
     void generateAll(MoveList& dst, const Position& pos);
     void generateCaptures(MoveList& dst, const Position& pos);
-    void generateNonCaptures(MoveList& dst, const Position& pos);
+    void generateDrops(MoveList& dst, const Position& pos);
+    void generateQuiets(MoveList& dst, const Position& pos);
     void generateRecaptures(MoveList& dst, const Position& pos, Square captureSq);
 } // namespace stoat::movegen
