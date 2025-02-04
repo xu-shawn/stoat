@@ -445,6 +445,7 @@ namespace stoat {
                     auto r = baseLmr;
 
                     r -= kPvNode;
+                    r += !pos.isInCheck();
 
                     const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                     score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha);
