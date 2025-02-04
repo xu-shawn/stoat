@@ -60,7 +60,7 @@ namespace stoat {
 
             case MovegenStage::GoodDrops: {
                 if (const auto move = selectNext([this](Move move) {
-                        if (move != m_ttMove)
+                        if (move == m_ttMove)
                             return false;
 
                         if (m_pos.threats().getSquare(move.to()))
