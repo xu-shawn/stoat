@@ -421,7 +421,7 @@ namespace stoat {
                         return -100 * depth * depth;
 
                     else if (move.isDrop())
-                        return -10 * depth * depth;
+                        return 10 - 10 * depth * depth;
 
                     return -20 * depth * depth;
                 }();
