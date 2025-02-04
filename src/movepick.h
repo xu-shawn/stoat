@@ -32,9 +32,10 @@ namespace stoat {
         GenerateCaptures,
         Captures,
         GenerateDrops,
-        Drops,
+        GoodDrops,
         GenerateQuiets,
         Quiets,
+        BadDrops,
         QsearchGenerateCaptures,
         QsearchCaptures,
         End,
@@ -85,5 +86,6 @@ namespace stoat {
         usize m_end{};
 
         usize m_begin_bad_drops{};
+        usize m_end_bad_drops{};
     };
 } // namespace stoat

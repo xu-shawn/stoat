@@ -448,7 +448,7 @@ namespace stoat {
             } else {
                 const auto newDepth = depth - 1;
 
-                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::Drops) {
+                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::GoodDrops) {
                     auto r = baseLmr;
 
                     r -= kPvNode;

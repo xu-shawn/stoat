@@ -17,6 +17,7 @@
  */
 
 #include "movepick.h"
+#include "bitboard.h"
 
 namespace stoat {
     Move MoveGenerator::next() {
@@ -51,22 +52,29 @@ namespace stoat {
             case MovegenStage::GenerateDrops: {
                 movegen::generateDrops(m_moves, m_pos);
                 m_end = m_moves.size();
+                m_begin_bad_drops = m_end;
 
                 ++m_stage;
                 [[fallthrough]];
             }
 
-            case MovegenStage::Drops: {
+            case MovegenStage::GoodDrops: {
                 if (const auto move = selectNext([this](Move move) {
                         if (move != m_ttMove)
                             return false;
 
-                        if (pos)
+                        if (m_pos.threats().getSquare(move.to()))
+                            return true;
+
+                        m_moves.push(move);
+                        return false;
                     }))
                 {
                     return move;
                 }
 
+                m_end_bad_drops = m_moves.size();
+                m_idx = m_moves.size();
                 ++m_stage;
                 [[fallthrough]];
             }
@@ -80,6 +88,18 @@ namespace stoat {
             }
 
             case MovegenStage::Quiets: {
+                if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
+                    return move;
+                }
+
+                m_idx = m_begin_bad_drops;
+                m_end = m_end_bad_drops;
+
+                ++m_stage;
+                [[fallthrough]];
+            }
+
+            case MovegenStage::BadDrops: {
                 if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
                     return move;
                 }
