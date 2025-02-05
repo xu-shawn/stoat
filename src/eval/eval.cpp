@@ -87,35 +87,33 @@ namespace stoat::eval {
 
             const auto kingRingPieceBonus = kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
 
-            auto rooks = pos.pieceBb(PieceTypes::kRook, c);
-            auto promotedRooks = pos.pieceBb(PieceTypes::kPromotedRook, c);
-
-            auto bishops = pos.pieceBb(PieceTypes::kBishop, c);
-            auto promotedBishops = pos.pieceBb(PieceTypes::kPromotedBishop, c);
+            auto kingRingIntersections = [&kingRing, king = Bitboard::fromSquare(pos.king(c))](const Bitboard attacks) {
+                return (kingRing & attacks).popcount();
+            };
 
             Score kingRingAttackScore = 0;
 
-            auto kingRingIntersections = [&kingRing, king = Bitboard::fromSquare(pos.king(c))](const Bitboard attacks) {
-                return (kingRing & attacks).popcount() + (!(king & attacks).empty()) * 2;
-            };
-
+            auto rooks = pos.pieceBb(PieceTypes::kRook, c);
             while (!rooks.empty()) {
                 const auto rook = rooks.popLsb();
                 kingRingAttackScore += kingRingIntersections(attacks::rookAttacks(rook, occ)) * kingRingRookAttackScore;
             }
 
+            auto promotedRooks = pos.pieceBb(PieceTypes::kPromotedRook, c);
             while (!promotedRooks.empty()) {
                 const auto promotedRook = promotedRooks.popLsb();
                 kingRingAttackScore += kingRingIntersections(attacks::promotedRookAttacks(promotedRook, occ))
                                      * kingRingPromotedRookAttackScore;
             }
 
+            auto bishops = pos.pieceBb(PieceTypes::kBishop, c);
             while (!bishops.empty()) {
                 const auto bishop = bishops.popLsb();
                 kingRingAttackScore +=
                     kingRingIntersections(attacks::bishopAttacks(bishop, occ)) * kingRingBishopAttackScore;
             }
 
+            auto promotedBishops = pos.pieceBb(PieceTypes::kPromotedBishop, c);
             while (!promotedBishops.empty()) {
                 const auto promotedBishop = promotedBishops.popLsb();
                 kingRingAttackScore += kingRingIntersections(attacks::promotedBishopAttacks(promotedBishop, occ))
