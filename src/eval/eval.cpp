@@ -89,7 +89,7 @@ namespace stoat::eval {
             while (!rookBB.empty())
                 forwardMobileBonus += attacks::lanceAttacks(rookBB.popLsb(), c, pos.occupancy()).popcount();
 
-            return forwardMobileBonus * kRookForwardMobilityBonus;
+            return forwardMobileBonus * kRooksForwardMobilityBonus;
         }
     } // namespace
 
