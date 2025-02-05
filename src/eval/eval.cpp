@@ -27,6 +27,7 @@
 namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
+        constexpr Score kRooksForwardMobilityBonus = 20;
 
         [[nodiscard]] Score evalMaterial(const Position& pos, Color c) {
             const auto materialCount = [&](PieceType pt) {
@@ -80,6 +81,20 @@ namespace stoat::eval {
 
             return kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
         }
+
+        [[nodiscard]] Score evalRook(const Position& pos, Color c) {
+            const auto occ = pos.occupancy();
+
+            i32 forwardMobility = 0;
+
+            auto rooks = pos.pieceBb(PieceTypes::kRook, c);
+            while (!rooks.empty()) {
+                const auto rook = rooks.popLsb();
+                forwardMobility += attacks::lanceAttacks(rook, c, occ).popcount();
+            }
+
+            return forwardMobility * kRooksForwardMobilityBonus;
+        }
     } // namespace
 
     Score staticEval(const Position& pos) {
@@ -90,6 +105,7 @@ namespace stoat::eval {
 
         score += evalMaterial(pos, stm) - evalMaterial(pos, nstm);
         score += evalKingSafety(pos, stm) - evalKingSafety(pos, nstm);
+        score += evalRook(pos, stm) - evalRook(pos, nstm);
 
         return std::clamp(score, -kScoreWin + 1, kScoreWin - 1);
     }
