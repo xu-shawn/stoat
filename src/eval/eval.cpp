@@ -80,6 +80,14 @@ namespace stoat::eval {
 
             return kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
         }
+
+        [[nodiscard]] Score evalRook(const Position& pos, Color c) {
+            const auto rookBB = pos.pieceBb(PieceTypes::kRook.withColor(c));
+
+            const auto forwardMobileBonus = attacks::lanceAttacks(rookBB.lsb(), c, pos.occupancy()).popcount();
+
+            return forwardMobileBonus * 20;
+        }
     } // namespace
 
     Score staticEval(const Position& pos) {
@@ -90,6 +98,7 @@ namespace stoat::eval {
 
         score += evalMaterial(pos, stm) - evalMaterial(pos, nstm);
         score += evalKingSafety(pos, stm) - evalKingSafety(pos, nstm);
+        score += evalRook(pos, stm) - evalRook(pos, nstm);
 
         return std::clamp(score, -kScoreWin + 1, kScoreWin - 1);
     }
