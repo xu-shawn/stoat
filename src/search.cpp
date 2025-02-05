@@ -421,7 +421,7 @@ namespace stoat {
                     continue;
                 }
 
-                if (!pos.isCapture(move) && !pos.isInCheck() && alpha < 2000 && depth <= 4
+                if (depth <= 4 && !pos.isInCheck() && alpha < 2000 && !pos.isCapture(move)
                     && staticEval + 150 + 100 * depth <= alpha)
                 {
                     continue;
@@ -448,11 +448,11 @@ namespace stoat {
             } else {
                 const auto newDepth = depth - 1;
 
-                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::NonCaptures) {
+                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::kNonCaptures) {
                     auto r = baseLmr;
 
-                    r -= kPvNode;
-                    r += !pos.isInCheck();
+                    r += !kPvNode;
+                    r -= pos.isInCheck();
 
                     const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                     score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha);

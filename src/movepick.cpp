@@ -21,7 +21,7 @@
 namespace stoat {
     Move MoveGenerator::next() {
         switch (m_stage) {
-            case MovegenStage::TtMove: {
+            case MovegenStage::kTtMove: {
                 ++m_stage;
 
                 if (m_ttMove && m_pos.isPseudolegal(m_ttMove)) {
@@ -31,7 +31,7 @@ namespace stoat {
                 [[fallthrough]];
             }
 
-            case MovegenStage::GenerateCaptures: {
+            case MovegenStage::kGenerateCaptures: {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
@@ -39,7 +39,7 @@ namespace stoat {
                 [[fallthrough]];
             }
 
-            case MovegenStage::Captures: {
+            case MovegenStage::kCaptures: {
                 if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
                     return move;
                 }
@@ -48,7 +48,7 @@ namespace stoat {
                 [[fallthrough]];
             }
 
-            case MovegenStage::GenerateNonCaptures: {
+            case MovegenStage::kGenerateNonCaptures: {
                 movegen::generateNonCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
@@ -56,16 +56,16 @@ namespace stoat {
                 [[fallthrough]];
             }
 
-            case MovegenStage::NonCaptures: {
+            case MovegenStage::kNonCaptures: {
                 if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
                     return move;
                 }
 
-                m_stage = MovegenStage::End;
+                m_stage = MovegenStage::kEnd;
                 return kNullMove;
             }
 
-            case MovegenStage::QsearchGenerateCaptures: {
+            case MovegenStage::kQsearchGenerateCaptures: {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
@@ -73,12 +73,12 @@ namespace stoat {
                 [[fallthrough]];
             }
 
-            case MovegenStage::QsearchCaptures: {
+            case MovegenStage::kQsearchCaptures: {
                 if (const auto move = selectNext([](Move) { return true; })) {
                     return move;
                 }
 
-                m_stage = MovegenStage::End;
+                m_stage = MovegenStage::kEnd;
                 return kNullMove;
             }
 
@@ -88,11 +88,11 @@ namespace stoat {
     }
 
     MoveGenerator MoveGenerator::main(const Position& pos, Move ttMove) {
-        return MoveGenerator{MovegenStage::TtMove, pos, ttMove};
+        return MoveGenerator{MovegenStage::kTtMove, pos, ttMove};
     }
 
     MoveGenerator MoveGenerator::qsearch(const Position& pos) {
-        return MoveGenerator{MovegenStage::QsearchGenerateCaptures, pos, kNullMove};
+        return MoveGenerator{MovegenStage::kQsearchGenerateCaptures, pos, kNullMove};
     }
 
     MoveGenerator::MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove) :

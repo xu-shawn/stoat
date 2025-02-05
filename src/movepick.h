@@ -28,14 +28,14 @@
 
 namespace stoat {
     enum class MovegenStage : i32 {
-        TtMove = 0,
-        GenerateCaptures,
-        Captures,
-        GenerateNonCaptures,
-        NonCaptures,
-        QsearchGenerateCaptures,
-        QsearchCaptures,
-        End,
+        kTtMove = 0,
+        kGenerateCaptures,
+        kCaptures,
+        kGenerateNonCaptures,
+        kNonCaptures,
+        kQsearchGenerateCaptures,
+        kQsearchCaptures,
+        kEnd,
     };
 
     constexpr MovegenStage& operator++(MovegenStage& v) {
