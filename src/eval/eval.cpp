@@ -27,6 +27,7 @@
 namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
+        constexpr Score kRookForwardMobilityBonus = 20;
 
         [[nodiscard]] Score evalMaterial(const Position& pos, Color c) {
             const auto materialCount = [&](PieceType pt) {
@@ -88,7 +89,7 @@ namespace stoat::eval {
             while (!rookBB.empty())
                 forwardMobileBonus += attacks::lanceAttacks(rookBB.popLsb(), c, pos.occupancy()).popcount();
 
-            return forwardMobileBonus * 20;
+            return forwardMobileBonus * kRookForwardMobilityBonus;
         }
     } // namespace
 
