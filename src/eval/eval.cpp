@@ -82,10 +82,10 @@ namespace stoat::eval {
         }
 
         [[nodiscard]] Score evalRook(const Position& pos, Color c) {
-            auto rookBB = pos.pieceBb(PieceTypes::kRook.withColor(c));
+            auto rookBB = pos.pieceBb(PieceTypes::kRook, c);
             auto forwardMobileBonus = 0;
 
-            while (rookBB.empty())
+            while (!rookBB.empty())
                 forwardMobileBonus += attacks::lanceAttacks(rookBB.popLsb(), c, pos.occupancy()).popcount();
 
             return forwardMobileBonus * 20;
