@@ -28,9 +28,9 @@ namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
         constexpr Score kingRingRookAttackScore = 3;
-        constexpr Score kingRingPromotedRookAttackScore = 5;
+        constexpr Score kingRingPromotedRookAttackScore = 3;
         constexpr Score kingRingBishopAttackScore = 3;
-        constexpr Score kingRingPromotedBishopAttackScore = 5;
+        constexpr Score kingRingPromotedBishopAttackScore = 3;
 
         constexpr Score kRooksForwardMobilityBonus = 20;
 
@@ -91,36 +91,37 @@ namespace stoat::eval {
                 return (kingRing & attacks).popcount();
             };
 
-            Score kingRingAttackScore = 0;
+            Score kingRingAttackersScore = 0;
 
             auto rooks = pos.pieceBb(PieceTypes::kRook, c.flip());
             while (!rooks.empty()) {
                 const auto rook = rooks.popLsb();
-                kingRingAttackScore += kingRingIntersections(attacks::rookAttacks(rook, occ)) * kingRingRookAttackScore;
+                kingRingAttackersScore +=
+                    kingRingIntersections(attacks::rookAttacks(rook, occ)) * kingRingRookAttackScore;
             }
 
             auto promotedRooks = pos.pieceBb(PieceTypes::kPromotedRook, c.flip());
             while (!promotedRooks.empty()) {
                 const auto promotedRook = promotedRooks.popLsb();
-                kingRingAttackScore += kingRingIntersections(attacks::promotedRookAttacks(promotedRook, occ))
-                                     * kingRingPromotedRookAttackScore;
+                kingRingAttackersScore += kingRingIntersections(attacks::promotedRookAttacks(promotedRook, occ))
+                                        * kingRingPromotedRookAttackScore;
             }
 
             auto bishops = pos.pieceBb(PieceTypes::kBishop, c.flip());
             while (!bishops.empty()) {
                 const auto bishop = bishops.popLsb();
-                kingRingAttackScore +=
+                kingRingAttackersScore +=
                     kingRingIntersections(attacks::bishopAttacks(bishop, occ)) * kingRingBishopAttackScore;
             }
 
             auto promotedBishops = pos.pieceBb(PieceTypes::kPromotedBishop, c.flip());
             while (!promotedBishops.empty()) {
                 const auto promotedBishop = promotedBishops.popLsb();
-                kingRingAttackScore += kingRingIntersections(attacks::promotedBishopAttacks(promotedBishop, occ))
-                                     * kingRingPromotedBishopAttackScore;
+                kingRingAttackersScore += kingRingIntersections(attacks::promotedBishopAttacks(promotedBishop, occ))
+                                        * kingRingPromotedBishopAttackScore;
             }
 
-            return kingRingPieceBonus - kingRingAttackScore;
+            return kingRingPieceBonus - kingRingAttackersScore;
         }
 
         [[nodiscard]] Score evalRook(const Position& pos, Color c) {
