@@ -27,6 +27,11 @@
 namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
+        constexpr Score kingRingRookAttackScore = 5;
+        constexpr Score kingRingPromotedRookAttackScore = 7;
+        constexpr Score kingRingBishopAttackScore = 5;
+        constexpr Score kingRingPromotedBishopAttackScore = 7;
+
         constexpr Score kRooksForwardMobilityBonus = 20;
 
         [[nodiscard]] Score evalMaterial(const Position& pos, Color c) {
@@ -71,15 +76,53 @@ namespace stoat::eval {
         }
 
         [[nodiscard]] Score evalKingSafety(const Position& pos, Color c) {
+            const auto occ = pos.occupancy();
             const auto stmPieces = pos.colorBb(c);
-            const auto kingRing = attacks::kingAttacks(pos.king(c));
+            const auto kingRing = attacks::kingAttacks(pos.king(c)) | Bitboard::fromSquare(pos.king(c));
 
             const auto kingRingSquareCount = static_cast<f64>(kingRing.popcount());
             const auto kingRingPieceCount = static_cast<f64>((stmPieces & kingRing).popcount());
 
             const auto filled = 8.0 * std::min(kingRingPieceCount / kingRingSquareCount, 0.75);
 
-            return kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
+            const auto kingRingPieceBonus = kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
+
+            auto rooks = pos.pieceBb(PieceTypes::kRook, c);
+            auto promotedRooks = pos.pieceBb(PieceTypes::kPromotedRook, c);
+
+            auto bishops = pos.pieceBb(PieceTypes::kBishop, c);
+            auto promotedBishops = pos.pieceBb(PieceTypes::kPromotedBishop, c);
+
+            Score kingRingAttackScore = 0;
+
+            auto kingRingIntersections = [&kingRing](const Bitboard attacks) {
+                return (kingRing & attacks).popcount();
+            };
+
+            while (!rooks.empty()) {
+                const auto rook = rooks.popLsb();
+                kingRingAttackScore += kingRingIntersections(attacks::rookAttacks(rook, occ)) * kingRingRookAttackScore;
+            }
+
+            while (!promotedRooks.empty()) {
+                const auto promotedRook = promotedRooks.popLsb();
+                kingRingAttackScore += kingRingIntersections(attacks::promotedRookAttacks(promotedRook, occ))
+                                     * kingRingPromotedRookAttackScore;
+            }
+
+            while (!bishops.empty()) {
+                const auto bishop = bishops.popLsb();
+                kingRingAttackScore +=
+                    kingRingIntersections(attacks::bishopAttacks(bishop, occ)) * kingRingBishopAttackScore;
+            }
+
+            while (!promotedBishops.empty()) {
+                const auto promotedBishop = promotedBishops.popLsb();
+                kingRingAttackScore += kingRingIntersections(attacks::promotedBishopAttacks(promotedBishop, occ))
+                                     * kingRingPromotedBishopAttackScore;
+            }
+
+            return kingRingPieceBonus + kingRingAttackScore;
         }
 
         [[nodiscard]] Score evalRook(const Position& pos, Color c) {
