@@ -57,7 +57,9 @@ namespace stoat::eval {
                 return score;
             }
 
-            const auto handPieceValue = [&](PieceType pt) { return static_cast<i32>(hand.count(pt)) * pieceValue(pt); };
+            const auto handPieceValue = [&](PieceType pt) {
+                return static_cast<i32>(hand.count(pt)) * pieceValue(pt) * 17 / 16;
+            };
 
             score += handPieceValue(PieceTypes::kPawn);
             score += handPieceValue(PieceTypes::kLance);
