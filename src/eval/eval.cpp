@@ -27,10 +27,10 @@
 namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
-        constexpr Score kingRingRookAttackScore = 5;
-        constexpr Score kingRingPromotedRookAttackScore = 7;
-        constexpr Score kingRingBishopAttackScore = 5;
-        constexpr Score kingRingPromotedBishopAttackScore = 7;
+        constexpr Score kingRingRookAttackScore = 3;
+        constexpr Score kingRingPromotedRookAttackScore = 5;
+        constexpr Score kingRingBishopAttackScore = 3;
+        constexpr Score kingRingPromotedBishopAttackScore = 5;
 
         constexpr Score kRooksForwardMobilityBonus = 20;
 
@@ -78,7 +78,7 @@ namespace stoat::eval {
         [[nodiscard]] Score evalKingSafety(const Position& pos, Color c) {
             const auto occ = pos.occupancy();
             const auto stmPieces = pos.colorBb(c);
-            const auto kingRing = attacks::kingAttacks(pos.king(c)) | Bitboard::fromSquare(pos.king(c));
+            const auto kingRing = attacks::kingAttacks(pos.king(c));
 
             const auto kingRingSquareCount = static_cast<f64>(kingRing.popcount());
             const auto kingRingPieceCount = static_cast<f64>((stmPieces & kingRing).popcount());
@@ -95,8 +95,8 @@ namespace stoat::eval {
 
             Score kingRingAttackScore = 0;
 
-            auto kingRingIntersections = [&kingRing](const Bitboard attacks) {
-                return (kingRing & attacks).popcount();
+            auto kingRingIntersections = [&kingRing, king = Bitboard::fromSquare(pos.king(c))](const Bitboard attacks) {
+                return (kingRing & attacks).popcount() + (!(king & attacks).empty()) * 2;
             };
 
             while (!rooks.empty()) {
