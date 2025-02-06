@@ -58,7 +58,7 @@ namespace stoat::eval {
             }
 
             const auto handPieceValue = [&](PieceType pt) {
-                return static_cast<i32>(hand.count(pt)) * pieceValue(pt) * 17 / 16;
+                return static_cast<i32>(hand.count(pt)) * pieceValue(pt) * 18 / 16;
             };
 
             score += handPieceValue(PieceTypes::kPawn);
