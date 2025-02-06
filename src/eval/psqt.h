@@ -138,6 +138,6 @@ namespace stoat::eval {
         };
 
         assert(pt);
-        return kValues[pt.idx()][stm == Colors::kWhite ? sq.rotate() : sq.idx()];
+        return kValues[pt.idx()][stm == Colors::kWhite ? sq.rotate().idx() : sq.idx()];
     }
 } // namespace stoat::eval
