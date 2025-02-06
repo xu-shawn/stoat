@@ -22,7 +22,7 @@
 #include "../core.h"
 
 namespace stoat::eval {
-    namespace values {
+    namespace PSQT_values {
         using PSQT = std::array<Score, 81>;
         // clang-format off
         constexpr PSQT kPawn = {
@@ -119,22 +119,22 @@ namespace stoat::eval {
         };
         constexpr PSQT kPromotedRook = kRook;
         // clang-format on
-    } // namespace values
-    [[nodiscard]] constexpr Score pieceValue(PieceType pt, Color stm, Square sq) {
+    } // namespace PSQT_values
+    [[nodiscard]] constexpr Score psqtValue(PieceType pt, Color stm, Square sq) {
         constexpr std::array kValues = {
-            values::kPawn,
-            values::kPromotedPawn,
-            values::kLance,
-            values::kKnight,
-            values::kPromotedLance,
-            values::kPromotedKnight,
-            values::kSilver,
-            values::kPromotedSilver,
-            values::kGold,
-            values::kBishop,
-            values::kRook,
-            values::kPromotedBishop,
-            values::kPromotedRook,
+            PSQT_values::kPawn,
+            PSQT_values::kPromotedPawn,
+            PSQT_values::kLance,
+            PSQT_values::kKnight,
+            PSQT_values::kPromotedLance,
+            PSQT_values::kPromotedKnight,
+            PSQT_values::kSilver,
+            PSQT_values::kPromotedSilver,
+            PSQT_values::kGold,
+            PSQT_values::kBishop,
+            PSQT_values::kRook,
+            PSQT_values::kPromotedBishop,
+            PSQT_values::kPromotedRook,
         };
 
         assert(pt);

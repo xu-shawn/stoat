@@ -23,6 +23,7 @@
 
 #include "../attacks/attacks.h"
 #include "material.h"
+#include "psqt.h"
 
 namespace stoat::eval {
     namespace {
@@ -72,6 +73,33 @@ namespace stoat::eval {
             return score;
         }
 
+        [[nodiscard]] Score evalPSQT(const Position& pos, Color c) {
+            const auto psqtTotal = [&](PieceType pt) {
+                Score total = 0;
+                auto pieces = pos.pieceBb(pt, c);
+                while (!pieces.empty())
+                    total += psqtValue(pt, c, pieces.popLsb());
+                return total;
+            };
+
+            Score score{};
+            score += psqtTotal(PieceTypes::kPawn);
+            score += psqtTotal(PieceTypes::kPromotedPawn);
+            score += psqtTotal(PieceTypes::kLance);
+            score += psqtTotal(PieceTypes::kKnight);
+            score += psqtTotal(PieceTypes::kPromotedLance);
+            score += psqtTotal(PieceTypes::kPromotedKnight);
+            score += psqtTotal(PieceTypes::kSilver);
+            score += psqtTotal(PieceTypes::kPromotedSilver);
+            score += psqtTotal(PieceTypes::kGold);
+            score += psqtTotal(PieceTypes::kBishop);
+            score += psqtTotal(PieceTypes::kRook);
+            score += psqtTotal(PieceTypes::kPromotedBishop);
+            score += psqtTotal(PieceTypes::kPromotedRook);
+
+            return score;
+        }
+
         [[nodiscard]] Score evalKingSafety(const Position& pos, Color c) {
             const auto stmPieces = pos.colorBb(c);
             const auto kingRing = attacks::kingAttacks(pos.king(c));
@@ -106,6 +134,7 @@ namespace stoat::eval {
         Score score{};
 
         score += evalMaterial(pos, stm) - evalMaterial(pos, nstm);
+        score += evalPSQT(pos, stm) - evalPSQT(pos, nstm);
         score += evalKingSafety(pos, stm) - evalKingSafety(pos, nstm);
         score += evalRook(pos, stm) - evalRook(pos, nstm);
 
