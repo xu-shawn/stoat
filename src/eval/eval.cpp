@@ -27,7 +27,7 @@
 namespace stoat::eval {
     namespace {
         constexpr Score kKingRingPieceScale = 8;
-        constexpr Score kRooksForwardMobilityBonus = 20;
+        constexpr Score kRooksForwardMobilityBonus = 10;
 
         [[nodiscard]] Score evalMaterial(const Position& pos, Color c) {
             const auto materialCount = [&](PieceType pt) {
