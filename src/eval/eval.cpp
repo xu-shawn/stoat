@@ -81,7 +81,8 @@ namespace stoat::eval {
 
             const auto filled = 8.0 * std::min(kingRingPieceCount / kingRingSquareCount, 0.75);
 
-            return kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6));
+            return kKingRingPieceScale * static_cast<i32>(std::pow(filled, 1.6))
+                 * std::log(pos.hand(c.flip()).count() + 1);
         }
 
         [[nodiscard]] Score evalRook(const Position& pos, Color c) {

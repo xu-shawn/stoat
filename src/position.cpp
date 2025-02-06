@@ -19,9 +19,11 @@
 #include "position.h"
 
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 
 #include "attacks/attacks.h"
+#include "core.h"
 #include "keys.h"
 #include "movegen.h"
 #include "rays.h"
@@ -87,6 +89,20 @@ namespace stoat {
         assert(offset != -1);
 
         return (m_hand & mask) >> offset;
+    }
+
+    u32 Hand::count() const {
+        u32 result = 0;
+        for (const auto p :
+             {PieceTypes::kPawn,
+              PieceTypes::kLance,
+              PieceTypes::kKnight,
+              PieceTypes::kSilver,
+              PieceTypes::kGold,
+              PieceTypes::kBishop,
+              PieceTypes::kRook})
+            result += count(p);
+        return result;
     }
 
     u32 Hand::increment(PieceType pt) {
