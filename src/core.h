@@ -587,6 +587,11 @@ namespace stoat {
             return static_cast<u32>(m_id) % 9;
         }
 
+        [[nodiscard]] Square rotate() const {
+            assert(m_id != kNoneId);
+            return Square::fromRaw(80 - m_id);
+        }
+
         [[nodiscard]] constexpr u128 bit() const {
             assert(m_id != kNoneId);
             return u128{1} << m_id;
