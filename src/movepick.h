@@ -61,8 +61,8 @@ namespace stoat {
     private:
         MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove);
 
-        [[nodiscard]] i32 scoreCapture(Move move);
-        void scoreCaptures();
+        [[nodiscard]] i32 scoreNonCapture(Move move);
+        void scoreNonCaptures();
 
         [[nodiscard]] usize findNext();
 

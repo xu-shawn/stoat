@@ -35,8 +35,6 @@ namespace stoat {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
-                scoreCaptures();
-
                 ++m_stage;
                 [[fallthrough]];
             }
@@ -63,6 +61,8 @@ namespace stoat {
                     return move;
                 }
 
+                scoreNonCaptures();
+
                 m_stage = MovegenStage::kEnd;
                 return kNullMove;
             }
@@ -70,8 +70,6 @@ namespace stoat {
             case MovegenStage::kQsearchGenerateCaptures: {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
-
-                scoreCaptures();
 
                 ++m_stage;
                 [[fallthrough]];
@@ -102,13 +100,13 @@ namespace stoat {
     MoveGenerator::MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove) :
             m_stage{initialStage}, m_pos{pos}, m_ttMove{ttMove} {}
 
-    i32 MoveGenerator::scoreCapture(Move move) {
-        return Square::chebyshev(move.to(), m_pos.king(m_pos.stm().flip()));
+    i32 MoveGenerator::scoreNonCapture(Move move) {
+        return -Square::chebyshev(move.to(), m_pos.king(m_pos.stm().flip()));
     }
 
-    void MoveGenerator::scoreCaptures() {
+    void MoveGenerator::scoreNonCaptures() {
         for (usize idx = m_idx; idx < m_end; ++idx) {
-            m_scores[idx] = scoreCapture(m_moves[idx]);
+            m_scores[idx] = scoreNonCapture(m_moves[idx]);
         }
     }
 
