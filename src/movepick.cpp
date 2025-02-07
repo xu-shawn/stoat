@@ -35,6 +35,8 @@ namespace stoat {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
+                scoreCaptures();
+
                 ++m_stage;
                 [[fallthrough]];
             }
@@ -69,6 +71,8 @@ namespace stoat {
                 movegen::generateCaptures(m_moves, m_pos);
                 m_end = m_moves.size();
 
+                scoreCaptures();
+
                 ++m_stage;
                 [[fallthrough]];
             }
@@ -97,4 +101,33 @@ namespace stoat {
 
     MoveGenerator::MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove) :
             m_stage{initialStage}, m_pos{pos}, m_ttMove{ttMove} {}
+
+    i32 MoveGenerator::scoreCapture(Move move) {
+        return Square::chebyshev(move.to(), m_pos.king(m_pos.stm().flip()));
+    }
+
+    void MoveGenerator::scoreCaptures() {
+        for (usize idx = m_idx; idx < m_end; ++idx) {
+            m_scores[idx] = scoreCapture(m_moves[idx]);
+        }
+    }
+
+    usize MoveGenerator::findNext() {
+        auto bestIdx = m_idx;
+        auto bestScore = m_scores[m_idx];
+
+        for (usize idx = m_idx + 1; idx < m_end; ++idx) {
+            if (m_scores[idx] > bestScore) {
+                bestIdx = idx;
+                bestScore = m_scores[idx];
+            }
+        }
+
+        if (bestIdx != m_idx) {
+            std::swap(m_moves[m_idx], m_moves[bestIdx]);
+            std::swap(m_scores[m_idx], m_scores[bestIdx]);
+        }
+
+        return m_idx++;
+    }
 } // namespace stoat
