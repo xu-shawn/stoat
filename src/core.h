@@ -603,6 +603,13 @@ namespace stoat {
             return fromRaw(m_id + offset);
         }
 
+        [[nodiscard]] static i32 chebyshev(Square a, Square b) {
+            return std::max(
+                std::abs(static_cast<i32>(a.rank()) - static_cast<i32>(b.rank())),
+                std::abs(static_cast<i32>(a.file()) - static_cast<i32>(b.file()))
+            );
+        }
+
         [[nodiscard]] static constexpr Square fromRaw(u8 id) {
             assert(id <= kNoneId);
             return Square{id};

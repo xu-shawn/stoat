@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "core.h"
 #include "eval/eval.h"
 #include "movepick.h"
 #include "protocol/handler.h"
@@ -455,6 +456,7 @@ namespace stoat {
 
                     r += !kPvNode;
                     r -= pos.isInCheck();
+                    r -= move.isDrop() && Square::chebyshev(move.to(), pos.king(pos.stm().flip())) < 3;
 
                     const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                     score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha);
