@@ -551,6 +551,11 @@ namespace stoat {
                 if (!see::see(pos, move, -100)) {
                     continue;
                 }
+
+                if (staticEval + 150 <= alpha && !see::see(pos, move, 1)) {
+                    bestScore = std::max(bestScore, staticEval + 150);
+                    continue;
+                }
             }
 
             const auto [newPos, guard] = thread.applyMove(ply, pos, move);
