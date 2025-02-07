@@ -61,9 +61,15 @@ namespace stoat {
     private:
         MoveGenerator(MovegenStage initialStage, const Position& pos, Move ttMove);
 
+        [[nodiscard]] i32 scoreCapture(Move move);
+        void scoreCaptures();
+
+        [[nodiscard]] usize findNext();
+
         [[nodiscard]] inline Move selectNext(auto predicate) {
             while (m_idx < m_end) {
-                const auto move = m_moves[m_idx++];
+                const auto idx = findNext();
+                const auto move = m_moves[idx];
                 if (predicate(move)) {
                     return move;
                 }
@@ -75,7 +81,9 @@ namespace stoat {
         MovegenStage m_stage;
 
         const Position& m_pos;
+
         movegen::MoveList m_moves{};
+        std::array<i32, movegen::kMoveListCapacity> m_scores{};
 
         Move m_ttMove;
 
