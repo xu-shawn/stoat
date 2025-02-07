@@ -448,7 +448,9 @@ namespace stoat {
             } else {
                 const auto newDepth = depth - 1;
 
-                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && generator.stage() >= MovegenStage::kNonCaptures) {
+                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && !newPos.isInCheck()
+                    && generator.stage() >= MovegenStage::kNonCaptures)
+                {
                     auto r = baseLmr;
 
                     r += !kPvNode;
