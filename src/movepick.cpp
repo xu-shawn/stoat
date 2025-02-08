@@ -103,7 +103,9 @@ namespace stoat {
             m_stage{initialStage}, m_pos{pos}, m_ttMove{ttMove} {}
 
     i32 MoveGenerator::scoreCapture(Move move) {
-        return Square::chebyshev(move.to(), m_pos.king(m_pos.stm().flip()));
+        const auto capturing = m_pos.pieceOn(move.from()).type();
+        const auto captured = m_pos.pieceOn(move.to()).type();
+        return static_cast<i32>(captured.idx()) - static_cast<i32>(capturing.idx());
     }
 
     void MoveGenerator::scoreCaptures() {
