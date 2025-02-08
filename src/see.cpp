@@ -102,7 +102,11 @@ namespace stoat::see {
         }
 
         const auto sq = move.to();
-        auto occ = pos.occupancy() ^ move.from().bit() ^ sq.bit();
+        auto occ = pos.occupancy() ^ sq.bit();
+
+        if (!move.isDrop()) {
+            occ ^= move.from().bit();
+        }
 
         const auto bishops = pos.pieceTypeBb(PieceTypes::kBishop) | pos.pieceTypeBb(PieceTypes::kPromotedBishop);
         const auto rooks = pos.pieceTypeBb(PieceTypes::kRook) | pos.pieceTypeBb(PieceTypes::kPromotedRook);
