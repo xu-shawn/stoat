@@ -80,12 +80,11 @@ namespace stoat::protocol {
         [[nodiscard]] virtual std::string_view bincToken() const = 0;
         [[nodiscard]] virtual std::string_view wincToken() const = 0;
 
+        EngineState& m_state;
+
     private:
         util::UnorderedStringMap<CommandHandlerType> m_cmdHandlers{};
 
-        EngineState& m_state;
-
-        void handle_isready(std::span<std::string_view> args, util::Instant startTime);
         void handle_position(std::span<std::string_view> args, util::Instant startTime);
         void handle_go(std::span<std::string_view> args, util::Instant startTime);
         void handle_stop(std::span<std::string_view> args, util::Instant startTime);

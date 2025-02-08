@@ -24,7 +24,21 @@
 namespace stoat::protocol {
     UsiHandler::UsiHandler(EngineState& state) :
             UciLikeHandler{state} {
-        registerCommandHandler("usinewgame", [this](std::span<std::string_view>, util::Instant) { handleNewGame(); });
+        registerCommandHandler("usinewgame", [](std::span<std::string_view>, util::Instant) {});
+        registerCommandHandler("isready", [this](std::span<std::string_view>, util::Instant) {
+            handleNewGame();
+            m_state.searcher->ensureReady();
+            std::cout << "readyok" << std::endl;
+        });
+        registerCommandHandler("gameover", [](std::span<std::string_view>, util::Instant) {});
+        registerCommandHandler("ping", [](std::span<std::string_view>, util::Instant) {
+            std::cout << "pong" << std::endl;
+        });
+    }
+
+    void UsiHandler::handleNoLegalMoves() const {
+        printInfoString(std::cout, "no legal moves");
+        std::cout << "bestmove resign" << std::endl;
     }
 
     void UsiHandler::printOptionName(std::ostream& stream, std::string_view name) const {

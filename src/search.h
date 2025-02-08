@@ -45,7 +45,7 @@ namespace stoat {
 
     class Searcher {
     public:
-        Searcher(usize ttSizeMib);
+        explicit Searcher(usize ttSizeMib);
         ~Searcher();
 
         void newGame();
@@ -104,7 +104,7 @@ namespace stoat {
             kGenerated,
         };
 
-        RootStatus initRootMoves(const Position& pos);
+        RootStatus initRootMoves(movegen::MoveList& dst, const Position& pos);
 
         void runThread(ThreadData& thread);
 

@@ -138,6 +138,14 @@ namespace stoat {
             return;
         }
 
+        movegen::MoveList rootMoves{};
+        const auto status = initRootMoves(rootMoves, pos);
+
+        if (status == RootStatus::kNoLegalMoves) {
+            protocol::currHandler().handleNoLegalMoves();
+            return;
+        }
+
         m_resetBarrier.arriveAndWait();
 
         const std::unique_lock lock{m_searchMutex};
@@ -156,23 +164,7 @@ namespace stoat {
         m_infinite = infinite;
         m_limiter = std::move(limiter);
 
-        const auto status = initRootMoves(pos);
-
-        if (status == RootStatus::kNoLegalMoves) {
-            const PvList pv{};
-            const protocol::SearchInfo info = {
-                .depth = 1,
-                .nodes = 0,
-                .score = protocol::MateDisplayScore{0},
-                .pv = pv,
-            };
-
-            protocol::currHandler().printInfoString(std::cout, "no legal moves");
-            protocol::currHandler().printSearchInfo(std::cout, info);
-
-            return;
-        }
-
+        m_rootMoves = rootMoves;
         assert(!m_rootMoves.empty());
 
         for (auto& thread : m_threads) {
@@ -199,7 +191,7 @@ namespace stoat {
     }
 
     void Searcher::runBenchSearch(BenchInfo& info, const Position& pos, i32 depth) {
-        if (initRootMoves(pos) == RootStatus::kNoLegalMoves) {
+        if (initRootMoves(m_rootMoves, pos) == RootStatus::kNoLegalMoves) {
             protocol::currHandler().printInfoString(std::cout, "no legal moves");
             return;
         }
@@ -230,10 +222,10 @@ namespace stoat {
         return m_searching;
     }
 
-    Searcher::RootStatus Searcher::initRootMoves(const Position& pos) {
-        m_rootMoves.clear();
-        generateLegal(m_rootMoves, pos);
-        return m_rootMoves.empty() ? Searcher::RootStatus::kNoLegalMoves : Searcher::RootStatus::kGenerated;
+    Searcher::RootStatus Searcher::initRootMoves(movegen::MoveList& dst, const Position& pos) {
+        dst.clear();
+        generateLegal(dst, pos);
+        return dst.empty() ? Searcher::RootStatus::kNoLegalMoves : Searcher::RootStatus::kGenerated;
     }
 
     void Searcher::runThread(ThreadData& thread) {

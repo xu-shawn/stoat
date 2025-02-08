@@ -56,6 +56,24 @@ namespace stoat::protocol {
     UciHandler::UciHandler(EngineState& state) :
             UciLikeHandler{state} {
         registerCommandHandler("ucinewgame", [this](std::span<std::string_view>, util::Instant) { handleNewGame(); });
+        registerCommandHandler("isready", [this](std::span<std::string_view>, util::Instant) {
+            m_state.searcher->ensureReady();
+            std::cout << "readyok" << std::endl;
+        });
+    }
+
+    void UciHandler::handleNoLegalMoves() const {
+        const PvList pv{};
+        const protocol::SearchInfo info = {
+            .depth = 1,
+            .nodes = 0,
+            .score = protocol::MateDisplayScore{0},
+            .pv = pv,
+        };
+
+        printInfoString(std::cout, "no legal moves");
+        printSearchInfo(std::cout, info);
+        printBestMove(std::cout, kNullMove);
     }
 
     void UciHandler::printOptionName(std::ostream& stream, std::string_view name) const {

@@ -58,7 +58,6 @@ namespace stoat::protocol {
 #define REGISTER_HANDLER(Command) \
     registerCommandHandler(#Command, [this](auto args, auto startTime) { handle_##Command(args, startTime); })
 
-        REGISTER_HANDLER(isready);
         REGISTER_HANDLER(position);
         REGISTER_HANDLER(go);
         REGISTER_HANDLER(stop);
@@ -178,14 +177,6 @@ namespace stoat::protocol {
         }
 
         m_state.searcher->newGame();
-    }
-
-    void UciLikeHandler::handle_isready(
-        [[maybe_unused]] std::span<std::string_view> args,
-        [[maybe_unused]] util::Instant startTime
-    ) {
-        m_state.searcher->ensureReady();
-        std::cout << "readyok" << std::endl;
     }
 
     void UciLikeHandler::handle_position(std::span<std::string_view> args, [[maybe_unused]] util::Instant startTime) {

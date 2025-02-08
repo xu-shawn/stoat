@@ -84,6 +84,7 @@ namespace stoat::protocol {
         virtual void printSearchInfo(std::ostream& stream, const SearchInfo& info) const = 0;
         virtual void printInfoString(std::ostream& stream, std::string_view str) const = 0;
         virtual void printBestMove(std::ostream& stream, Move move) const = 0;
+        virtual void handleNoLegalMoves() const = 0;
     };
 
     constexpr std::string_view kDefaultHandler = "usi";
