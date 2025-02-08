@@ -84,6 +84,7 @@ namespace stoat::limit {
     struct TimeLimits {
         f64 remaining;
         f64 increment;
+        f64 byoyomi;
     };
 
     class TimeManager final : public ISearchLimiter {

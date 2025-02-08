@@ -18,6 +18,8 @@
 
 #include "limit.h"
 
+#include <iostream>
+
 namespace stoat::limit {
     namespace {
         constexpr usize kTimeCheckInterval = 2048;
@@ -52,12 +54,13 @@ namespace stoat::limit {
 
     TimeManager::TimeManager(util::Instant startTime, const TimeLimits& limits) :
             m_startTime{startTime} {
-        const auto remaining = limits.remaining - kMoveOverhead;
+        const auto remaining = std::max(limits.remaining - kMoveOverhead, 0.0);
+        const auto extra = std::max(limits.byoyomi - kMoveOverhead, 0.0);
 
-        const auto baseTime = std::min(remaining * 0.05 + limits.increment * 0.5, remaining);
+        const auto baseTime = std::min(remaining * 0.05 + limits.increment * 0.5, remaining) + extra;
         const auto optTime = baseTime * 0.6;
 
-        m_maxTime = remaining * 0.6;
+        m_maxTime = remaining * 0.6 + extra;
         m_optTime = std::min(optTime, m_maxTime);
     }
 

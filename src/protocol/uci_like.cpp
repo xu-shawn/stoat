@@ -246,6 +246,8 @@ namespace stoat::protocol {
         std::optional<f64> binc{};
         std::optional<f64> winc{};
 
+        std::optional<f64> byoyomi{};
+
         for (i32 i = 0; i < args.size(); ++i) {
             if (args[i] == "infinite") {
                 infinite = true;
@@ -350,6 +352,21 @@ namespace stoat::protocol {
 
                 wincMs = std::max<i64>(wincMs, 0);
                 winc = static_cast<f64>(wincMs) / 1000.0;
+            } else if (args[i] == "byoyomi") {
+                if (++i == args.size()) {
+                    std::cerr << "Missing byoyomi" << std::endl;
+                    return;
+                }
+
+                i64 byoyomiMs{};
+
+                if (!util::tryParse(byoyomiMs, args[i])) {
+                    std::cerr << "Invalid byoyomi '" << args[i] << "'" << std::endl;
+                    return;
+                }
+
+                byoyomiMs = std::max<i64>(byoyomiMs, 0);
+                byoyomi = static_cast<f64>(byoyomiMs) / 1000.0;
             }
         }
 
@@ -359,7 +376,8 @@ namespace stoat::protocol {
         if (time) {
             const limit::TimeLimits limits{
                 .remaining = *time,
-                .increment = inc ? *inc : 0,
+                .increment = inc.value_or(0.0),
+                .byoyomi = byoyomi.value_or(0.0),
             };
 
             limiter->addLimiter<limit::TimeManager>(startTime, limits);
