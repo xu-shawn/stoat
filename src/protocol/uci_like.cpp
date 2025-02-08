@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "../eval/eval.h"
 #include "../limit.h"
 #include "../perft.h"
 #include "../ttable.h"
@@ -30,6 +31,28 @@
 #include "common.h"
 
 namespace stoat::protocol {
+    namespace {
+        struct PrintScore {
+            Score value;
+
+            inline friend std::ostream& operator<<(std::ostream& stream, PrintScore score) {
+                if (score.value > 0) {
+                    stream << '+';
+                } else if (score.value < 0) {
+                    stream << '-';
+                }
+
+                const auto absScore = std::abs(score.value);
+
+                stream << (absScore / 100);
+                stream << '.';
+                stream << std::setw(2) << std::setfill('0') << (absScore % 100);
+
+                return stream;
+            }
+        };
+    } // namespace
+
     UciLikeHandler::UciLikeHandler(EngineState& state) :
             m_state{state} {
 #define REGISTER_HANDLER(Command) \
@@ -480,6 +503,11 @@ namespace stoat::protocol {
         while (!pinned.empty()) {
             std::cout << ' ' << pinned.popLsb();
         }
+
+        std::cout << "\nStatic eval: ";
+
+        const auto staticEval = eval::staticEval(m_state.pos);
+        std::cout << PrintScore{staticEval};
 
         std::cout << std::endl;
     }
