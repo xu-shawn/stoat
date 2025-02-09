@@ -289,4 +289,8 @@ namespace stoat::protocol {
     std::string_view UciHandler::wincToken() const {
         return "binc";
     }
+
+    void UciHandler::printGoMateResponse(std::ostream& stream) const {
+        //
+    }
 } // namespace stoat::protocol

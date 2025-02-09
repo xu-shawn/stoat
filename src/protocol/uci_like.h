@@ -80,6 +80,8 @@ namespace stoat::protocol {
         [[nodiscard]] virtual std::string_view bincToken() const = 0;
         [[nodiscard]] virtual std::string_view wincToken() const = 0;
 
+        virtual void printGoMateResponse(std::ostream& stream) const = 0;
+
         EngineState& m_state;
 
     private:

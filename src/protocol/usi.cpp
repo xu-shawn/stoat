@@ -121,4 +121,8 @@ namespace stoat::protocol {
     std::string_view UsiHandler::wincToken() const {
         return "winc";
     }
+
+    void UsiHandler::printGoMateResponse(std::ostream& stream) const {
+        stream << "checkmate notimplemented" << std::endl;
+    }
 } // namespace stoat::protocol

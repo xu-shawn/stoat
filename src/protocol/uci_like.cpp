@@ -367,6 +367,10 @@ namespace stoat::protocol {
 
                 byoyomiMs = std::max<i64>(byoyomiMs, 0);
                 byoyomi = static_cast<f64>(byoyomiMs) / 1000.0;
+            } else if (args[i] == "mate") {
+                printInfoString(std::cout, "go mate not supported");
+                printGoMateResponse(std::cout);
+                return;
             }
         }
 

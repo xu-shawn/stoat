@@ -51,5 +51,7 @@ namespace stoat::protocol {
 
         [[nodiscard]] std::string_view bincToken() const final;
         [[nodiscard]] std::string_view wincToken() const final;
+
+        void printGoMateResponse(std::ostream& stream) const final;
     };
 } // namespace stoat::protocol
