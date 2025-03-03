@@ -102,16 +102,19 @@ namespace stoat::see {
         }
 
         const auto sq = move.to();
-        auto occ = pos.occupancy() ^ sq.bit();
+        const auto not_pinned = ~pos.pinned();
+        auto occ = (pos.occupancy() ^ sq.bit()) & not_pinned;
 
         if (!move.isDrop()) {
             occ ^= move.from().bit();
         }
 
-        const auto bishops = pos.pieceTypeBb(PieceTypes::kBishop) | pos.pieceTypeBb(PieceTypes::kPromotedBishop);
-        const auto rooks = pos.pieceTypeBb(PieceTypes::kRook) | pos.pieceTypeBb(PieceTypes::kPromotedRook);
+        const auto bishops =
+            (pos.pieceTypeBb(PieceTypes::kBishop) | pos.pieceTypeBb(PieceTypes::kPromotedBishop)) & not_pinned;
+        const auto rooks =
+            (pos.pieceTypeBb(PieceTypes::kRook) | pos.pieceTypeBb(PieceTypes::kPromotedRook)) & not_pinned;
 
-        auto attackers = pos.allAttackersTo(sq, occ);
+        auto attackers = pos.allAttackersTo(sq, occ) & not_pinned;
 
         auto curr = stm.flip();
 
