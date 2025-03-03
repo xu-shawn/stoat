@@ -419,9 +419,11 @@ namespace stoat {
                 continue;
             }
 
+            const auto [newPos, guard] = thread.applyMove(ply, pos, move);
+
             const auto baseLmr = s_lmrTable[depth][std::min<u32>(legalMoves, 63)];
 
-            if (!kRootNode && bestScore > -kScoreWin) {
+            if (!kRootNode && bestScore > -kScoreWin && !newPos.isInCheck()) {
                 const auto seeThreshold = pos.isCapture(move) ? -100 * depth * depth : -20 * depth * depth;
                 if (!see::see(pos, move, seeThreshold)) {
                     continue;
@@ -440,7 +442,6 @@ namespace stoat {
 
             ++legalMoves;
 
-            const auto [newPos, guard] = thread.applyMove(ply, pos, move);
             const auto sennichite = newPos.testSennichite(m_cuteChessWorkaround, thread.keyHistory);
 
             Score score;
