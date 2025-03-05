@@ -16,18 +16,15 @@
  * along with Stoat. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "eval.h"
+#pragma once
 
-#include <algorithm>
+#include "../types.h"
 
-namespace stoat::eval {
-    Score staticEval(const Position& pos, const nnue::NnueState& nnueState) {
-        const auto nnue = nnueState.evaluate(pos.stm());
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
+#include <functional>
 
-    Score staticEvalOnce(const Position& pos) {
-        const auto nnue = nnue::evaluateOnce(pos);
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
-} // namespace stoat::eval
+namespace stoat::util::signal {
+    using CtrlCHandler = std::function<void()>;
+    void addCtrlCHandler(CtrlCHandler handler);
+
+    void init();
+} // namespace stoat::util::signal

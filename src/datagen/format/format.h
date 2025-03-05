@@ -16,18 +16,33 @@
  * along with Stoat. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "eval.h"
+#pragma once
 
-#include <algorithm>
+#include "../../types.h"
 
-namespace stoat::eval {
-    Score staticEval(const Position& pos, const nnue::NnueState& nnueState) {
-        const auto nnue = nnueState.evaluate(pos.stm());
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
+#include <iostream>
 
-    Score staticEvalOnce(const Position& pos) {
-        const auto nnue = nnue::evaluateOnce(pos);
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
-} // namespace stoat::eval
+#include "../../core.h"
+#include "../../move.h"
+#include "../../position.h"
+
+namespace stoat::datagen::format {
+    enum class Outcome : u8 {
+        kBlackLoss = 0,
+        kDraw,
+        kBlackWin,
+    };
+
+    class IDataFormat {
+    public:
+        virtual ~IDataFormat() = default;
+
+        virtual void startStandard() = 0;
+        //TODO shogi960, arbitrary position
+
+        virtual void pushUnscored(Move move) = 0;
+        virtual void push(Move move, Score score) = 0;
+
+        virtual usize writeAllWithOutcome(std::ostream& stream, Outcome outcome) = 0;
+    };
+} // namespace stoat::datagen::format

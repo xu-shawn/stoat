@@ -16,18 +16,16 @@
  * along with Stoat. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "eval.h"
+#pragma once
 
-#include <algorithm>
+#include "../types.h"
 
 namespace stoat::eval {
-    Score staticEval(const Position& pos, const nnue::NnueState& nnueState) {
-        const auto nnue = nnueState.evaluate(pos.stm());
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
+    constexpr i32 kFtQ = 255;
+    constexpr i32 kL1Q = 64;
 
-    Score staticEvalOnce(const Position& pos) {
-        const auto nnue = nnue::evaluateOnce(pos);
-        return std::clamp(nnue, -kScoreWin + 1, kScoreWin - 1);
-    }
+    constexpr u32 kFtSize = 2344;
+    constexpr u32 kL1Size = 16;
+
+    constexpr i32 kScale = 400;
 } // namespace stoat::eval

@@ -33,6 +33,12 @@
 namespace stoat {
     class Hand {
     public:
+        Hand() = default;
+
+        [[nodiscard]] constexpr u32 raw() const {
+            return m_hand;
+        }
+
         [[nodiscard]] inline bool empty() const {
             return m_hand == 0;
         }
@@ -44,11 +50,16 @@ namespace stoat {
 
         void set(PieceType pt, u32 count);
 
+        [[nodiscard]] static Hand fromRaw(u32 raw);
+
         [[nodiscard]] std::string sfen(bool uppercase) const;
 
         [[nodiscard]] bool operator==(const Hand&) const = default;
 
     private:
+        explicit Hand(u32 hand) :
+                m_hand{hand} {}
+
         u32 m_hand{};
 
         friend std::ostream& operator<<(std::ostream& stream, const Hand& hand);
@@ -83,11 +94,22 @@ namespace stoat {
         [[nodiscard]] bool operator==(const PositionKeys&) const = default;
     };
 
+    enum class NnueUpdateAction {
+        kNone = 0,
+        kPush,
+        kApplyInPlace,
+    };
+
     enum class SennichiteStatus {
         kNone = 0,
         kDraw,
         kWin, // perpetual check by opponent
     };
+
+    namespace eval::nnue {
+        struct NnueUpdates;
+        class NnueState;
+    } // namespace eval::nnue
 
     class Position {
     public:
@@ -96,7 +118,9 @@ namespace stoat {
         Position(const Position&) = default;
         Position(Position&&) = default;
 
-        [[nodiscard]] Position applyMove(Move move) const;
+        template <NnueUpdateAction kUpdateAction = NnueUpdateAction::kNone>
+        [[nodiscard]] Position applyMove(Move move, eval::nnue::NnueState* nnueState = nullptr) const;
+
         [[nodiscard]] Position applyNullMove() const;
 
         [[nodiscard]] inline Bitboard occupancy() const {
@@ -222,9 +246,13 @@ namespace stoat {
         u16 m_moveCount{1};
 
         void addPiece(Square sq, Piece piece);
-        void movePiece(Square from, Square to, Piece piece);
-        void promotePiece(Square from, Square to, Piece piece);
-        void dropPiece(Square sq, Piece piece);
+
+        template <bool kUpdateNnue>
+        void movePiece(Square from, Square to, Piece piece, eval::nnue::NnueUpdates& nnueUpdates);
+        template <bool kUpdateNnue>
+        void promotePiece(Square from, Square to, Piece piece, eval::nnue::NnueUpdates& nnueUpdates);
+        template <bool kUpdateNnue>
+        void dropPiece(Square sq, Piece piece, eval::nnue::NnueUpdates& nnueUpdates);
 
         void updateAttacks();
 
