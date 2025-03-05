@@ -44,7 +44,6 @@ namespace stoat {
         }
 
         [[nodiscard]] u32 count(PieceType pt) const;
-        [[nodiscard]] u32 count() const;
 
         u32 increment(PieceType pt);
         u32 decrement(PieceType pt);

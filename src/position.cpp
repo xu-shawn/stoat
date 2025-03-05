@@ -90,18 +90,6 @@ namespace stoat {
         return (m_hand & mask) >> offset;
     }
 
-    u32 Hand::count() const {
-        u32 total = 0;
-        total += count(PieceTypes::kPawn);
-        total += count(PieceTypes::kLance);
-        total += count(PieceTypes::kKnight);
-        total += count(PieceTypes::kSilver);
-        total += count(PieceTypes::kGold);
-        total += count(PieceTypes::kBishop);
-        total += count(PieceTypes::kRook);
-        return total;
-    }
-
     u32 Hand::increment(PieceType pt) {
         assert(pt);
         const auto curr = count(pt);
