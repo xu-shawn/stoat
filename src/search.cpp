@@ -33,7 +33,7 @@ namespace stoat {
         // [depth][move index]
         const auto s_lmrTable = [] {
             constexpr f64 kBase = 0.2;
-            constexpr f64 kDivisor = 4.5;
+            constexpr f64 kDivisor = 3.5;
 
             util::MultiArray<i32, 256, 64> reductions{};
 
@@ -500,7 +500,7 @@ namespace stoat {
             } else {
                 const auto newDepth = depth - 1;
 
-                if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && !newPos.isInCheck()
+                if (depth >= 2 && legalMoves >= 3 + 2 * kRootNode && !newPos.isInCheck()
                     && generator.stage() >= MovegenStage::kNonCaptures)
                 {
                     auto r = baseLmr;
