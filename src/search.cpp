@@ -498,7 +498,7 @@ namespace stoat {
             } else if (pos.isEnteringKingsWin()) {
                 score = kScoreMate - ply - 1;
             } else {
-                const auto givesCheck = newPos.isInCheck();
+                const bool givesCheck = newPos.isInCheck();
                 const auto newDepth = depth + givesCheck - 1;
 
                 if (depth >= 2 && legalMoves >= 3 + 2 * kRootNode && !givesCheck
