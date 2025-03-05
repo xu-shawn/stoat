@@ -498,9 +498,10 @@ namespace stoat {
             } else if (pos.isEnteringKingsWin()) {
                 score = kScoreMate - ply - 1;
             } else {
-                const auto newDepth = depth - 1;
+                const auto givesCheck = newPos.isInCheck();
+                const auto newDepth = depth + givesCheck - 1;
 
-                if (depth >= 2 && legalMoves >= 3 + 2 * kRootNode && !newPos.isInCheck()
+                if (depth >= 2 && legalMoves >= 3 + 2 * kRootNode && !givesCheck
                     && generator.stage() >= MovegenStage::kNonCaptures)
                 {
                     auto r = baseLmr;
