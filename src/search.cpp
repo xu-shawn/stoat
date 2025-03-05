@@ -426,7 +426,7 @@ namespace stoat {
         const auto staticEval = eval::staticEval(pos, thread.nnueState);
 
         if (!kPvNode && !pos.isInCheck()) {
-            if (depth <= 4 && staticEval - 120 * depth - pos.hand(pos.stm()).count() * 20 >= beta) {
+            if (depth <= 4 && staticEval - 120 * depth + pos.hand(pos.stm()).count() * 20 >= beta) {
                 return staticEval;
             }
 
