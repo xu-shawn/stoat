@@ -427,7 +427,8 @@ namespace stoat {
 
         if (!kPvNode && !pos.isInCheck()) {
             if (depth <= 4 && staticEval - 120 * depth >= beta) {
-                return staticEval;
+                if (qsearch(thread, pos, ply, beta - 1, beta) >= beta)
+                    return staticEval;
             }
 
             if (depth >= 4 && staticEval >= beta && !parent->move.isNull()) {
