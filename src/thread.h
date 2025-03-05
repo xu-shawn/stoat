@@ -72,6 +72,7 @@ namespace stoat {
     struct StackFrame {
         PvList pv{};
         Move move{};
+        Move excluded{};
     };
 
     struct alignas(kCacheLineSize) ThreadData {

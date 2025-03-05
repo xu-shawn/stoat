@@ -23,9 +23,11 @@
 
 #include "core.h"
 #include "eval/eval.h"
+#include "move.h"
 #include "movepick.h"
 #include "protocol/handler.h"
 #include "see.h"
+#include "ttable.h"
 #include "util/multi_array.h"
 
 namespace stoat {
@@ -408,24 +410,28 @@ namespace stoat {
         auto& curr = thread.stack[ply];
         const auto* parent = kRootNode ? nullptr : &thread.stack[ply - 1];
 
+        assert(!RootNode || curr.excluded == NullMove);
+
         tt::ProbedEntry ttEntry{};
-        const bool ttHit = m_ttable.probe(ttEntry, pos.key(), ply);
+        const bool ttHit = curr.excluded ? false : m_ttable.probe(ttEntry, pos.key(), ply);
 
-        if (!kPvNode && ttEntry.depth >= depth
-            && (ttEntry.flag == tt::Flag::kExact                                   //
-                || ttEntry.flag == tt::Flag::kUpperBound && ttEntry.score <= alpha //
-                || ttEntry.flag == tt::Flag::kLowerBound && ttEntry.score >= beta))
-        {
-            return ttEntry.score;
-        }
+        if (!curr.excluded) {
+            if (!kPvNode && ttEntry.depth >= depth
+                && (ttEntry.flag == tt::Flag::kExact                                   //
+                    || ttEntry.flag == tt::Flag::kUpperBound && ttEntry.score <= alpha //
+                    || ttEntry.flag == tt::Flag::kLowerBound && ttEntry.score >= beta))
+            {
+                return ttEntry.score;
+            }
 
-        if (depth >= 3 && !ttEntry.move) {
-            --depth;
+            if (depth >= 3 && !ttEntry.move) {
+                --depth;
+            }
         }
 
         const auto staticEval = eval::staticEval(pos, thread.nnueState);
 
-        if (!kPvNode && !pos.isInCheck()) {
+        if (!kPvNode && !pos.isInCheck() && !curr.excluded) {
             if (depth <= 4 && staticEval - 80 * depth >= beta) {
                 return staticEval;
             }
@@ -453,6 +459,9 @@ namespace stoat {
 
         while (const auto move = generator.next()) {
             assert(pos.isPseudolegal(move));
+
+            if (move == curr.excluded)
+                continue;
 
             if constexpr (kRootNode) {
                 if (!isLegalRootMove(move)) {
@@ -484,6 +493,25 @@ namespace stoat {
 
             ++legalMoves;
 
+            i32 extension{};
+
+            if (!kRootNode && depth >= 8 && move == ttEntry.move && !curr.excluded && ttEntry.depth >= depth - 5
+                && ttEntry.flag != tt::Flag::kUpperBound)
+            {
+                const auto sBeta = std::max(-kScoreInf + 1, ttEntry.score - 2 * depth);
+                const auto sDepth = (depth - 1) / 2;
+
+                curr.excluded = move;
+
+                const auto score = search(thread, pos, curr.pv, sDepth, ply, sBeta - 1, sBeta);
+
+                curr.excluded = kNullMove;
+
+                if (score < sBeta) {
+                    extension = 1;
+                }
+            }
+
             const auto [newPos, guard] = thread.applyMove(ply, pos, move);
             const auto sennichite = newPos.testSennichite(m_cuteChessWorkaround, thread.keyHistory);
 
@@ -498,7 +526,7 @@ namespace stoat {
             } else if (pos.isEnteringKingsWin()) {
                 score = kScoreMate - ply - 1;
             } else {
-                const auto newDepth = depth - 1;
+                const auto newDepth = depth + extension - 1;
 
                 if (depth >= 2 && legalMoves >= 5 + 2 * kRootNode && !newPos.isInCheck()
                     && generator.stage() >= MovegenStage::kNonCaptures)
