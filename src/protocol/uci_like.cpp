@@ -139,6 +139,12 @@ namespace stoat::protocol {
             stream << "cp " << score;
         }
 
+        if (info.scoreBound == ScoreBound::kUpperBound) {
+            stream << " upperbound";
+        } else if (info.scoreBound == ScoreBound::kLowerBound) {
+            stream << " lowerbound";
+        }
+
         if (info.hashfull) {
             stream << " hashfull " << *info.hashfull;
         }

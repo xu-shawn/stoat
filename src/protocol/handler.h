@@ -51,12 +51,19 @@ namespace stoat::protocol {
 
     using DisplayScore = std::variant<CpDisplayScore, MateDisplayScore>;
 
+    enum class ScoreBound {
+        kExact = 0,
+        kUpperBound,
+        kLowerBound,
+    };
+
     struct SearchInfo {
         i32 depth;
         std::optional<i32> seldepth{};
         std::optional<f64> timeSec{};
         usize nodes;
         DisplayScore score;
+        ScoreBound scoreBound{ScoreBound::kExact};
         const PvList& pv;
         std::optional<u32> hashfull{};
     };

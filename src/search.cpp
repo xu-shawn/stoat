@@ -30,6 +30,8 @@
 
 namespace stoat {
     namespace {
+        constexpr f64 kWideningReportDelay = 1.5;
+
         // [depth][move index]
         const auto s_lmrTable = [] {
             constexpr f64 kBase = 0.2;
@@ -332,12 +334,21 @@ namespace stoat {
                     break;
                 }
 
+                if (score > alpha && score < beta) {
+                    break;
+                }
+
+                if (thread.isMainThread()) {
+                    const auto time = m_startTime.elapsed();
+                    if (time >= kWideningReportDelay) {
+                        report(depth, score, alpha, beta, time, rootPv);
+                    }
+                }
+
                 if (score <= alpha) {
                     alpha = std::max(score - window, -kScoreInf);
-                } else if (score >= beta) {
+                } else { // score >= beta
                     beta = std::min(score + window, kScoreInf);
-                } else {
-                    break;
                 }
 
                 window += window;
@@ -693,7 +704,7 @@ namespace stoat {
         return bestScore;
     }
 
-    void Searcher::report(const ThreadData& bestThread, f64 time) {
+    void Searcher::report(i32 depth, Score score, Score alpha, Score beta, f64 time, const PvList& pv) {
         if (m_silent) {
             return;
         }
@@ -706,36 +717,49 @@ namespace stoat {
             maxSeldepth = std::max(maxSeldepth, thread.loadSeldepth());
         }
 
-        protocol::DisplayScore score{};
+        auto bound = protocol::ScoreBound::kExact;
 
-        if (std::abs(bestThread.lastScore) >= kScoreMaxMate) {
-            if (bestThread.lastScore > 0) {
-                score = protocol::MateDisplayScore{kScoreMate - bestThread.lastScore};
+        if (score <= alpha) {
+            bound = protocol::ScoreBound::kUpperBound;
+        } else if (score >= beta) {
+            bound = protocol::ScoreBound::kLowerBound;
+        }
+
+        score = std::clamp(score, alpha, beta);
+
+        protocol::DisplayScore displayScore;
+
+        if (std::abs(score) >= kScoreMaxMate) {
+            if (score > 0) {
+                displayScore = protocol::MateDisplayScore{kScoreMate - score};
             } else {
-                score = protocol::MateDisplayScore{-(kScoreMate + bestThread.lastScore)};
+                displayScore = protocol::MateDisplayScore{-(kScoreMate + score)};
             }
         } else {
-            auto cp = bestThread.lastScore;
-
             // clamp draw scores to 0
-            if (std::abs(cp) <= 2) {
-                cp = 0;
+            if (std::abs(score) <= 2) {
+                score = 0;
             }
 
-            score = protocol::CpDisplayScore{cp};
+            displayScore = protocol::CpDisplayScore{score};
         }
 
         const protocol::SearchInfo info = {
-            .depth = bestThread.depthCompleted,
+            .depth = depth,
             .seldepth = maxSeldepth,
             .timeSec = time,
             .nodes = totalNodes,
-            .score = score,
-            .pv = bestThread.lastPv,
+            .score = displayScore,
+            .scoreBound = bound,
+            .pv = pv,
             .hashfull = m_ttable.fullPermille(),
         };
 
         protocol::currHandler().printSearchInfo(std::cout, info);
+    }
+
+    void Searcher::report(const ThreadData& bestThread, f64 time) {
+        report(bestThread.depthCompleted, bestThread.lastScore, -kScoreInf, kScoreInf, time, bestThread.lastPv);
     }
 
     void Searcher::finalReport(f64 time) {

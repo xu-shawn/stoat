@@ -151,7 +151,9 @@ namespace stoat {
         template <bool kPvNode = false>
         Score qsearch(ThreadData& thread, const Position& pos, i32 ply, Score alpha, Score beta);
 
+        void report(i32 depth, Score score, Score alpha, Score beta, f64 time, const PvList& pv);
         void report(const ThreadData& bestThread, f64 time);
+
         void finalReport(f64 time);
     };
 } // namespace stoat
