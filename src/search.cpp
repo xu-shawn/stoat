@@ -589,14 +589,20 @@ namespace stoat {
             return pos.isInCheck() ? 0 : eval::staticEval(pos, thread.nnueState);
         }
 
-        const auto staticEval = eval::staticEval(pos, thread.nnueState);
+        Score staticEval;
 
-        if (staticEval >= beta) {
-            return staticEval;
-        }
+        if (pos.isInCheck()) {
+            staticEval = -kScoreMate + ply;
+        } else {
+            staticEval = eval::staticEval(pos, thread.nnueState);
 
-        if (staticEval > alpha) {
-            alpha = staticEval;
+            if (staticEval >= beta) {
+                return staticEval;
+            }
+
+            if (staticEval > alpha) {
+                alpha = staticEval;
+            }
         }
 
         auto bestScore = staticEval;
@@ -637,6 +643,10 @@ namespace stoat {
 
             if (hasStopped()) {
                 return 0;
+            }
+
+            if (score > -kScoreWin) {
+                generator.skipNonCaptures();
             }
 
             if (score > bestScore) {
