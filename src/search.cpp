@@ -635,6 +635,10 @@ namespace stoat {
                 score = -qsearch<kPvNode>(thread, newPos, ply + 1, -beta, -alpha);
             }
 
+            if (hasStopped()) {
+                return 0;
+            }
+
             if (score > bestScore) {
                 bestScore = score;
             }
