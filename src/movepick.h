@@ -66,9 +66,10 @@ namespace stoat {
 
         [[nodiscard]] usize findNext();
 
+        template <bool kScored>
         [[nodiscard]] inline Move selectNext(auto predicate) {
             while (m_idx < m_end) {
-                const auto idx = findNext();
+                const auto idx = kScored ? findNext() : m_idx++;
                 const auto move = m_moves[idx];
                 if (predicate(move)) {
                     return move;
