@@ -42,7 +42,7 @@ namespace stoat {
             }
 
             case MovegenStage::kCaptures: {
-                if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
+                if (const auto move = selectNext<true>([this](Move move) { return move != m_ttMove; })) {
                     return move;
                 }
 
@@ -59,7 +59,7 @@ namespace stoat {
             }
 
             case MovegenStage::kNonCaptures: {
-                if (const auto move = selectNext([this](Move move) { return move != m_ttMove; })) {
+                if (const auto move = selectNext<false>([this](Move move) { return move != m_ttMove; })) {
                     return move;
                 }
 
@@ -78,7 +78,7 @@ namespace stoat {
             }
 
             case MovegenStage::kQsearchCaptures: {
-                if (const auto move = selectNext([](Move) { return true; })) {
+                if (const auto move = selectNext<true>([](Move) { return true; })) {
                     return move;
                 }
 
