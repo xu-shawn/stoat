@@ -482,8 +482,8 @@ namespace stoat::protocol {
             }
         } else if (name == "threads") {
             if (const auto newThreadCount = util::tryParse<u32>(value)) {
-                const auto size = kThreadCountRange.clamp(*newThreadCount);
-                m_state.searcher->setThreadCount(size);
+                const auto threadCount = kThreadCountRange.clamp(*newThreadCount);
+                m_state.searcher->setThreadCount(threadCount);
             } else {
                 std::cerr << "Invalid thread count '" << value << "'" << std::endl;
             }
