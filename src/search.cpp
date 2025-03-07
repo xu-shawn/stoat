@@ -490,7 +490,7 @@ namespace stoat {
             }
 
             if (depth >= 4 && curr.staticEval >= beta && !parent->move.isNull()) {
-                const auto r = 3 + depth / 5 + std::min((beta - curr.staticEval) / 200, 3);
+                const auto r = 3 + depth / 5 + std::min((curr.staticEval - beta) / 200, 3);
 
                 const auto [newPos, guard] = thread.applyNullMove(ply, pos);
                 const auto score = -search(thread, newPos, curr.pv, depth - r, ply + 1, -beta, -beta + 1);
