@@ -49,9 +49,17 @@ namespace stoat::datagen {
         constexpr usize kHardNodes = 8388608;
 
         std::mutex s_printMutex{};
+        std::optional<std::ofstream> s_errOut{};
 
         std::atomic_bool s_stop{false};
-        std::atomic_flag s_error{};
+
+        std::ofstream& getErrStream(const std::filesystem::path& outDir) {
+            if (!s_errOut) {
+                s_errOut = std::ofstream{outDir / "err.txt", std::ios::binary | std::ios::app};
+            }
+
+            return *s_errOut;
+        }
 
         void initCtrlCHandler() {
             util::signal::addCtrlCHandler([] { s_stop.store(true); });
@@ -225,22 +233,26 @@ namespace stoat::datagen {
                     } else if (sennichite == SennichiteStatus::kWin) {
                         const std::scoped_lock lock{s_printMutex};
 
-                        std::cerr << "Illegal perpetual as best move?" << std::endl;
+                        auto& errStream = getErrStream(outDir);
 
-                        std::cerr << "Keys:";
+                        errStream << "thread " << id << ": illegal perpetual as best move?\n";
+
+                        errStream << "Keys:";
                         for (usize i = 0; i < keyHistory.size() - 1; ++i) {
                             std::ostringstream str{};
                             str << std::hex << std::setw(16) << std::setfill('0');
                             str << keyHistory[i];
-                            std::cout << ' ' << str.view();
+                            errStream << ' ' << str.view();
                         }
 
-                        std::cerr << "\nPos: " << oldPos.sfen();
-                        std::cerr << "\nMove: " << move;
-                        std::cerr << std::endl;
+                        errStream << "\nPos: " << oldPos.sfen();
+                        errStream << "\nMove: " << move;
+                        errStream << '\n';
 
-                        s_error.test_and_set();
-                        s_stop = true;
+                        errStream.flush();
+
+                        outcome = format::Outcome::kDraw;
+                        break;
                     }
 
                     // This will likely be handled by search returning
@@ -255,7 +267,9 @@ namespace stoat::datagen {
                 }
 
                 assert(outcome);
+
                 totalPositions += format.writeAllWithOutcome(stream, *outcome);
+                stream.flush();
 
                 ++gameCount;
 
@@ -303,8 +317,8 @@ namespace stoat::datagen {
             thread.join();
         }
 
-        if (s_error.test_and_set()) {
-            return 1;
+        if (s_errOut) {
+            s_errOut = {};
         }
 
         std::cout << "done" << std::endl;
