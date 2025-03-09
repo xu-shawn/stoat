@@ -152,12 +152,10 @@ namespace stoat {
             m_stage{initialStage}, m_pos{pos}, m_ttMove{ttMove}, m_history{history} {}
 
     i32 MoveGenerator::scoreNonCapture(Move move) {
-        assert(m_history);
         return m_history.nonCaptureScore(move);
     }
 
     void MoveGenerator::scoreNonCaptures() {
-        assert(m_history);
         for (usize idx = m_idx; idx < m_end; ++idx) {
             m_scores[idx] = scoreNonCapture(m_moves[idx]);
         }
