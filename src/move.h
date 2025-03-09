@@ -200,13 +200,13 @@ struct fmt::formatter<stoat::Move> : fmt::formatter<std::string_view> {
             return format_to(ctx.out(), "????");
         }
 
-        const auto to = value.to();
         const auto from = value.from();
-
-        format_to(ctx.out(), "{}{}", from, to);
+        const auto to = value.to();
 
         if (value.isPromo()) {
-            format_to(ctx.out(), "+");
+            format_to(ctx.out(), "{}{}+", from, to);
+        } else {
+            format_to(ctx.out(), "{}{}", from, to);
         }
 
         return ctx.out();

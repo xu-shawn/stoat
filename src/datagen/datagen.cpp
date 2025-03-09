@@ -244,9 +244,9 @@ namespace stoat::datagen {
 
                         fmt::println(errStream, "thread {}: illegal perpetual as best move?", id);
 
-                        fmt::println(errStream, "Keys:");
+                        fmt::print(errStream, "Keys:");
                         for (usize i = 0; i < keyHistory.size() - 1; ++i) {
-                            fmt::println(errStream, " {:016x}", keyHistory[i]);
+                            fmt::print(errStream, " {:016x}", keyHistory[i]);
                         }
                         fmt::println("");
 

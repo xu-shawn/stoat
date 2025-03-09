@@ -205,7 +205,7 @@ namespace stoat::protocol {
                 const auto piece = pos.pieceOn(Square::fromFileRank(file, rank));
 
                 if (piece) {
-                    fmt::print(" :{}{}", !piece.type().isPromoted() ? " " : "", piece);
+                    fmt::print(" |{}{}", !piece.type().isPromoted() ? " " : "", piece);
                 } else {
                     fmt::print(" |  ");
                 }
@@ -217,11 +217,13 @@ namespace stoat::protocol {
 
         fmt::println("   a   b   c   d   e   f   g   h   i");
 
+        fmt::println("");
+
         fmt::println("Black pieces in hand: {}", pos.hand(Colors::kBlack));
         fmt::println("White pieces in hand: {}", pos.hand(Colors::kWhite));
 
         fmt::println("");
-        fmt::println("{} to move", pos.stm() == Colors::kBlack ? "Black" : "White");
+        fmt::print("{} to move", pos.stm() == Colors::kBlack ? "Black" : "White");
     }
 
     void UciHandler::printFen(const Position& pos) const {
@@ -255,8 +257,8 @@ namespace stoat::protocol {
             return;
         }
 
-        const auto to = move.to();
         const auto from = move.from();
+        const auto to = move.to();
 
         printSquare(from);
         printSquare(to);
