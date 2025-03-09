@@ -50,10 +50,10 @@ namespace stoat::protocol {
         };
 
         if (std::ranges::find(kFixedSemanticsOptions, name) != kFixedSemanticsOptions.end()) {
-            fmt::print("USI_");
+            fmt::print("USI_{}", name);
+        } else {
+            fmt::print("{}", name);
         }
-
-        fmt::print("{}", name);
     }
 
     std::string UsiHandler::transformOptionName(std::string_view name) const {
@@ -81,7 +81,7 @@ namespace stoat::protocol {
         }
 
         return Position::fromSfenParts(args.subspan<1>()).mapErr<std::optional<std::string>>([](const SfenError& err) {
-            return std::optional{"Failed to parse sfen: " + std::string{err.message()}};
+            return std::optional{fmt::format("Failed to parse sfen: {}", err.message())};
         });
     }
 

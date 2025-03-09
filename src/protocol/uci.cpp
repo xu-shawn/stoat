@@ -157,7 +157,7 @@ namespace stoat::protocol {
         fmt::println("info string constructed sfen: {}", sfen);
 
         return Position::fromSfen(sfen).mapErr<std::optional<std::string>>([](const SfenError& err) {
-            return std::optional{"Failed to parse constructed sfen: " + std::string{err.message()}};
+            return std::optional{fmt::format("Failed to parse constructed sfen: {}", err.message())};
         });
     }
 

@@ -148,7 +148,7 @@ namespace stoat::datagen {
         }
 
         void runThread(u32 id, u64 seed, const std::filesystem::path& outDir) {
-            const auto filename = std::to_string(id) + ".spk";
+            const auto filename = fmt::format("{}.spk", id);
             const auto outFile = outDir / filename;
 
             std::ofstream stream{outFile, std::ios::binary | std::ios::app};

@@ -930,13 +930,13 @@ namespace stoat {
                         ++fileIdx;
                         ++curr;
                     } else {
-                        return util::err<SfenError>("invalid promoted piece " + std::string{pieceStr});
+                        return util::err<SfenError>(fmt::format("invalid promoted piece {}", pieceStr));
                     }
                 } else if (const auto piece = Piece::fromStr(rank.substr(curr, 1))) {
                     pos.addPiece(Square::fromFileRank(fileIdx, 8 - rankIdx), piece);
                     ++fileIdx;
                 } else {
-                    return util::err<SfenError>("invalid piece char " + std::string{c});
+                    return util::err<SfenError>(fmt::format("invalid piece char {}", c));
                 }
             }
 
@@ -996,13 +996,13 @@ namespace stoat {
                     pos.m_hands[piece.color().idx()].set(piece.type(), nextCount);
                     nextCount = 1;
                 } else {
-                    return util::err<SfenError>("invalid piece " + std::string{c} + " found in hand");
+                    return util::err<SfenError>(fmt::format("invalid piece {} found in hand", c));
                 }
             }
         }
 
         if (sfen.size() == 4 && !util::tryParse(pos.m_moveCount, sfen[3])) {
-            return util::err<SfenError>("invalid move count " + std::string{sfen[3]});
+            return util::err<SfenError>(fmt::format("invalid move count {}", sfen[3]));
         }
 
         pos.regenKey();
