@@ -49,7 +49,7 @@ namespace stoat::bench {
         f64 totalTime{};
 
         for (const auto sfen : kBenchSfens) {
-            std::cout << "SFEN: " << sfen << std::endl;
+            fmt::println("SFEN: {}", sfen);
 
             const auto pos = Position::fromSfen(sfen).take();
 
@@ -59,12 +59,12 @@ namespace stoat::bench {
             totalNodes += info.nodes;
             totalTime += info.time;
 
-            std::cout << std::endl;
+            fmt::println("");
         }
 
         const auto nps = static_cast<usize>(static_cast<f64>(totalNodes) / totalTime);
 
-        std::cout << totalTime << " seconds" << std::endl;
-        std::cout << totalNodes << " nodes " << nps << " nps" << std::endl;
+        fmt::println("{:.5g} seconds", totalTime);
+        fmt::println("{} nodes {} nps", totalNodes, nps);
     }
 } // namespace stoat::bench

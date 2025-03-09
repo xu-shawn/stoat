@@ -19,7 +19,7 @@
 #include "uci.h"
 
 #include <cassert>
-#include <sstream>
+#include <iterator>
 #include <vector>
 
 #include "../util/parse.h"
@@ -45,11 +45,9 @@ namespace stoat::protocol {
             return Square::fromRaw(rank * 9 + file);
         }
 
-        void printSquare(std::ostream& stream, Square sq) {
+        void printSquare(Square sq) {
             assert(sq != Squares::kNone);
-
-            stream << static_cast<char>('a' + sq.file());
-            stream << static_cast<char>('1' + sq.rank());
+            fmt::print("{}{}", static_cast<char>('a' + sq.file()), static_cast<char>('1' + sq.rank()));
         }
     } // namespace
 
@@ -58,7 +56,7 @@ namespace stoat::protocol {
         registerCommandHandler("ucinewgame", [this](std::span<std::string_view>, util::Instant) { handleNewGame(); });
         registerCommandHandler("isready", [this](std::span<std::string_view>, util::Instant) {
             m_state.searcher->ensureReady();
-            std::cout << "readyok" << std::endl;
+            fmt::println("readyok");
         });
     }
 
@@ -71,18 +69,18 @@ namespace stoat::protocol {
             .pv = pv,
         };
 
-        printInfoString(std::cout, "no legal moves");
-        printSearchInfo(std::cout, info);
-        printBestMove(std::cout, kNullMove);
+        printInfoString("no legal moves");
+        printSearchInfo(info);
+        printBestMove(kNullMove);
     }
 
     bool UciHandler::handleEnteringKingsWin() const {
-        printInfoString(std::cout, "Entering kings win at root");
+        printInfoString("Entering kings win at root");
         return false;
     }
 
-    void UciHandler::printOptionName(std::ostream& stream, std::string_view name) const {
-        stream << name;
+    void UciHandler::printOptionName(std::string_view name) const {
+        fmt::print("{}", name);
     }
 
     std::string UciHandler::transformOptionName(std::string_view name) const {
@@ -94,10 +92,11 @@ namespace stoat::protocol {
     }
 
     void UciHandler::finishInitialInfo() const {
-        std::cout << "option name UCI_Variant type combo default shogi var shogi\n";
-        std::cout << "\ninfo string Stoat's UCI support is intended for Cute Chess compatibility only.\n";
-        std::cout << "info string Prefer USI for normal use.\n";
-        std::cout << "uciok" << std::endl;
+        fmt::println("option name UCI_Variant type combo default shogi var shogi");
+        fmt::println("");
+        fmt::println("info string Stoat's UCI support is intended for Cute Chess compatibility only.");
+        fmt::println("info string Prefer USI for normal use.");
+        fmt::println("uciok");
     }
 
     util::Result<Position, std::optional<std::string>> UciHandler::parsePosition(std::span<std::string_view> args
@@ -116,7 +115,8 @@ namespace stoat::protocol {
             return util::err<std::optional<std::string>>("Failed to parse FEN: wrong number of FEN parts");
         }
 
-        std::ostringstream sfen{};
+        std::string sfen{};
+        auto itr = std::back_inserter(sfen);
 
         const auto handStart = args[1].find_first_of('[');
 
@@ -143,20 +143,20 @@ namespace stoat::protocol {
             handStart == handEnd - 1 ? std::string_view{"-"} : args[1].substr(handStart + 1, handEnd - handStart - 1);
         const auto stm = args[2] == "w" ? 'b' : 'w';
 
-        sfen << board << ' ' << stm << ' ' << hand;
+        fmt::format_to(itr, "{} {} {}", board, stm, hand);
 
         if (args.size() == 5) {
             if (const auto fullmove = util::tryParse<u32>(args[4])) {
                 const auto moveCount = *fullmove * 2 - (stm == 'b');
-                sfen << ' ' << moveCount;
+                fmt::format_to(itr, " {}", moveCount);
             } else {
                 return util::err<std::optional<std::string>>("Failed to parse FEN: invalid fullmove number");
             }
         }
 
-        std::cout << "info string constructed sfen: " << sfen.view() << std::endl;
+        fmt::println("info string constructed sfen: {}", sfen);
 
-        return Position::fromSfen(sfen.view()).mapErr<std::optional<std::string>>([](const SfenError& err) {
+        return Position::fromSfen(sfen).mapErr<std::optional<std::string>>([](const SfenError& err) {
             return std::optional{"Failed to parse constructed sfen: " + std::string{err.message()}};
         });
     }
@@ -197,33 +197,34 @@ namespace stoat::protocol {
         return util::ok(promo ? Move::makePromotion(from, to) : Move::makeNormal(from, to));
     }
 
-    void UciHandler::printBoard(std::ostream& stream, const Position& pos) const {
-        stream << " +---+---+---+---+---+---+---+---+---+\n";
+    void UciHandler::printBoard(const Position& pos) const {
+        fmt::println(" +---+---+---+---+---+---+---+---+---+");
 
         for (i32 rank = 8; rank >= 0; --rank) {
             for (i32 file = 0; file < 9; ++file) {
                 const auto piece = pos.pieceOn(Square::fromFileRank(file, rank));
 
                 if (piece) {
-                    stream << " |" << (!piece.type().isPromoted() ? " " : "") << piece;
+                    fmt::print(" :{}{}", !piece.type().isPromoted() ? " " : "", piece);
                 } else {
-                    stream << " |  ";
+                    fmt::print(" |  ");
                 }
             }
 
-            stream << " | " << static_cast<char>('1' + rank);
-            stream << "\n +---+---+---+---+---+---+---+---+---+\n";
+            fmt::println(" | {}", static_cast<char>('1' + rank));
+            fmt::println(" +---+---+---+---+---+---+---+---+---+");
         }
 
-        stream << "   a   b   c   d   e   f   g   h   i\n";
+        fmt::println("   a   b   c   d   e   f   g   h   i");
 
-        stream << "\nBlack pieces in hand: " << pos.hand(Colors::kBlack);
-        stream << "\nWhite pieces in hand: " << pos.hand(Colors::kWhite);
+        fmt::println("Black pieces in hand: {}", pos.hand(Colors::kBlack));
+        fmt::println("White pieces in hand: {}", pos.hand(Colors::kWhite));
 
-        stream << "\n\n" << (pos.stm() == Colors::kBlack ? "Black" : "White") << " to move";
+        fmt::println("");
+        fmt::println("{} to move", pos.stm() == Colors::kBlack ? "Black" : "White");
     }
 
-    void UciHandler::printFen(std::ostream& stream, const Position& pos) const {
+    void UciHandler::printFen(const Position& pos) const {
         const auto sfen = pos.sfen();
 
         std::vector<std::string_view> split{};
@@ -235,12 +236,12 @@ namespace stoat::protocol {
         const auto stm = split[1] == "w" ? 'b' : 'w';
         const auto fullmove = (pos.moveCount() + 1) / 2;
 
-        stream << split[0] << '[' << split[2] << "] " << stm << " - " << fullmove;
+        fmt::print("{}[{}] {} - {}", split[0], split[2], stm, fullmove);
     }
 
-    void UciHandler::printMove(std::ostream& stream, Move move) const {
+    void UciHandler::printMove(Move move) const {
         if (move.isNull()) {
-            stream << "0000";
+            fmt::print("0000");
             return;
         }
 
@@ -248,8 +249,8 @@ namespace stoat::protocol {
             const auto square = move.to();
             const auto piece = move.dropPiece();
 
-            stream << piece.str()[0] << '@';
-            printSquare(stream, square);
+            fmt::print("{}@", piece.str()[0]);
+            printSquare(square);
 
             return;
         }
@@ -257,26 +258,26 @@ namespace stoat::protocol {
         const auto to = move.to();
         const auto from = move.from();
 
-        printSquare(stream, from);
-        printSquare(stream, to);
+        printSquare(from);
+        printSquare(to);
 
         if (move.isPromo()) {
-            stream << '+';
+            fmt::print("+");
         }
     }
 
-    void UciHandler::printMateScore(std::ostream& stream, i32 plies) const {
+    void UciHandler::printMateScore(i32 plies) const {
         if (plies > 0) {
-            stream << ((plies + 1) / 2);
+            fmt::print("{}", (plies + 1) / 2);
         } else {
-            stream << (plies / 2);
+            fmt::print("{}", plies / 2);
         }
     }
 
-    void UciHandler::printFenLine(std::ostream& stream, const Position& pos) const {
-        stream << "Fen: ";
-        printFen(stream, pos);
-        stream << '\n';
+    void UciHandler::printFenLine(const Position& pos) const {
+        fmt::print("Fen: ");
+        printFen(pos);
+        fmt::println("");
     }
 
     std::string_view UciHandler::btimeToken() const {
@@ -295,7 +296,7 @@ namespace stoat::protocol {
         return "binc";
     }
 
-    void UciHandler::printGoMateResponse(std::ostream& stream) const {
+    void UciHandler::printGoMateResponse() const {
         //
     }
 } // namespace stoat::protocol

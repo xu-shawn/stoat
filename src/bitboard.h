@@ -22,7 +22,6 @@
 
 #include <array>
 #include <cassert>
-#include <iostream>
 
 #include "core.h"
 #include "util/bits.h"
@@ -394,22 +393,6 @@ namespace stoat {
         static constexpr u128 kFile1 = U128(0x10080, 0x4020100804020100);
 
         friend struct Bitboards;
-
-        friend inline std::ostream& operator<<(std::ostream& stream, Bitboard bb) {
-            for (i32 rank = 8; rank >= 0; --rank) {
-                for (i32 file = 0; file < 9; ++file) {
-                    if (file > 0) {
-                        stream << ' ';
-                    }
-
-                    stream << (bb.getSquare(Square::fromFileRank(file, rank)) ? '1' : '.');
-                }
-
-                stream << '\n';
-            }
-
-            return stream;
-        }
     };
 
     struct Bitboards {
@@ -484,3 +467,22 @@ namespace stoat {
         }
     };
 } // namespace stoat
+
+template <>
+struct fmt::formatter<stoat::Bitboard> : fmt::formatter<std::string_view> {
+    constexpr auto format(const stoat::Bitboard& value, format_context& ctx) const {
+        for (stoat::i32 rank = 8; rank >= 0; --rank) {
+            for (stoat::i32 file = 0; file < 9; ++file) {
+                if (file > 0) {
+                    format_to(ctx.out(), " \n");
+                }
+
+                format_to(ctx.out(), "{}", value.getSquare(stoat::Square::fromFileRank(file, rank)) ? '1' : '.');
+            }
+
+            format_to(ctx.out(), "\n");
+        }
+
+        return ctx.out();
+    }
+};

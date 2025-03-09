@@ -23,7 +23,6 @@
 #include <array>
 #include <bit>
 #include <cassert>
-#include <iostream>
 
 namespace stoat {
     class Color {
@@ -251,11 +250,6 @@ namespace stoat {
         };
 
         friend struct PieceTypes;
-
-        friend inline std::ostream& operator<<(std::ostream& stream, PieceType pt) {
-            stream << pt.str();
-            return stream;
-        }
     };
 
     struct PieceTypes {
@@ -512,11 +506,6 @@ namespace stoat {
         };
 
         friend struct Pieces;
-
-        friend inline std::ostream& operator<<(std::ostream& stream, Piece piece) {
-            stream << piece.str();
-            return stream;
-        }
     };
 
     constexpr Piece PieceType::withColor(Color c) const {
@@ -737,18 +726,6 @@ namespace stoat {
         };
 
         friend struct Squares;
-
-        friend inline std::ostream& operator<<(std::ostream& stream, Square square) {
-            if (square.raw() == kNoneId) {
-                stream << "??";
-                return stream;
-            }
-
-            stream << static_cast<char>('1' + 8 - square.file());
-            stream << static_cast<char>('a' + 8 - square.rank());
-
-            return stream;
-        }
     };
 
     struct Squares {
@@ -883,3 +860,37 @@ namespace stoat {
 
     constexpr auto kScoreMaxMate = kScoreMate - kMaxDepth;
 } // namespace stoat
+
+template <>
+struct fmt::formatter<stoat::PieceType> : fmt::formatter<std::string_view> {
+    constexpr format_context::iterator format(stoat::PieceType value, format_context& ctx) const {
+        return formatter<std::string_view>::format(value.str(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<stoat::Piece> : fmt::formatter<std::string_view> {
+    constexpr format_context::iterator format(stoat::Piece value, format_context& ctx) const {
+        return formatter<std::string_view>::format(value.str(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<stoat::Square> : fmt::nested_formatter<char> {
+    format_context::iterator format(stoat::Square value, format_context& ctx) const {
+        using namespace stoat;
+
+        return write_padded(ctx, [=, this](auto out) {
+            if (value == Squares::kNone) {
+                return format_to(out, "??");
+            }
+
+            return format_to(
+                out,
+                "{}{}",
+                nested(static_cast<char>('1' + 8 - value.file())),
+                nested(static_cast<char>('a' + 8 - value.rank()))
+            );
+        });
+    }
+};

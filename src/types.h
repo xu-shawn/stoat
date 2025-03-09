@@ -20,7 +20,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <utility>
+
+#include <fmt/format.h>
 
 namespace stoat {
     using u8 = std::uint8_t;

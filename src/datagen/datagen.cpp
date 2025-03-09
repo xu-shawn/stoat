@@ -22,11 +22,12 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <memory>
 #include <optional>
-#include <sstream>
 #include <thread>
+
+#include <fmt/ostream.h>
+#include <fmt/std.h>
 
 #include "../limit.h"
 #include "../movegen.h"
@@ -154,7 +155,7 @@ namespace stoat::datagen {
             std::ofstream stream{outFile, std::ios::binary | std::ios::app};
 
             if (!stream) {
-                std::cerr << "failed to open output file \"" << outFile << "\"" << std::endl;
+                fmt::println(stderr, "failed to open output file \"{}\"", outFile);
                 return;
             }
 
@@ -186,9 +187,15 @@ namespace stoat::datagen {
                 const auto gamesPerSec = static_cast<f64>(gameCount) / time;
                 const auto posPerSec = static_cast<f64>(totalPositions) / time;
 
-                std::cout << "thread " << id << ": wrote " << totalPositions << " positions from " << gameCount
-                          << " games in " << time << " sec (" << gamesPerSec << " games/sec, " << posPerSec
-                          << " pos/sec)" << std::endl;
+                fmt::println(
+                    "thread {}: wrote {} positions from {} games in {:.6g} sec ({:.6g} games/sec, {:.6g} pos/sec)",
+                    id,
+                    totalPositions,
+                    gameCount,
+                    time,
+                    gamesPerSec,
+                    posPerSec
+                );
             };
 
             while (!s_stop.load()) {
@@ -235,19 +242,16 @@ namespace stoat::datagen {
 
                         auto& errStream = getErrStream(outDir);
 
-                        errStream << "thread " << id << ": illegal perpetual as best move?\n";
+                        fmt::println(errStream, "thread {}: illegal perpetual as best move?", id);
 
-                        errStream << "Keys:";
+                        fmt::println(errStream, "Keys:");
                         for (usize i = 0; i < keyHistory.size() - 1; ++i) {
-                            std::ostringstream str{};
-                            str << std::hex << std::setw(16) << std::setfill('0');
-                            str << keyHistory[i];
-                            errStream << ' ' << str.view();
+                            fmt::println(errStream, " {:016x}", keyHistory[i]);
                         }
+                        fmt::println("");
 
-                        errStream << "\nPos: " << oldPos.sfen();
-                        errStream << "\nMove: " << move;
-                        errStream << '\n';
+                        fmt::println("Pos: {}", oldPos.sfen());
+                        fmt::println("Move: {}", move);
 
                         errStream.flush();
 
@@ -294,16 +298,16 @@ namespace stoat::datagen {
         }
 
         if (!std::filesystem::is_directory(outDir)) {
-            std::cerr << "out path must be a directory" << std::endl;
+            fmt::println(stderr, "out path must be a directory");
             return 1;
         }
 
         const auto baseSeed = util::rng::generateSingleSeed();
-        std::cout << "Base seed: " << baseSeed << std::endl;
+        fmt::println("Base seed: {}", baseSeed);
 
         util::rng::SeedGenerator seedGenerator{baseSeed};
 
-        std::cout << "Starting " << threadCount << " threads" << std::endl;
+        fmt::println("Starting {} threads", threadCount);
 
         std::vector<std::thread> threads{};
         threads.reserve(threadCount);
@@ -321,7 +325,7 @@ namespace stoat::datagen {
             s_errOut = {};
         }
 
-        std::cout << "done" << std::endl;
+        fmt::println("done");
 
         return 0;
     }

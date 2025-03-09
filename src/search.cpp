@@ -155,7 +155,7 @@ namespace stoat {
         std::unique_ptr<limit::ISearchLimiter> limiter
     ) {
         if (!limiter) {
-            std::cerr << "Missing limiter" << std::endl;
+            fmt::println(stderr, "Missing limiter");
             return;
         }
 
@@ -181,8 +181,7 @@ namespace stoat {
             const auto initTime = initStart.elapsed();
             const auto ms = static_cast<u32>(initTime * 1000.0);
             protocol::currHandler().printInfoString(
-                std::cout,
-                "No newgame or isready before go, lost " + std::to_string(ms) + " ms to TT initialization"
+                fmt::format("No newgame or isready before go, lost {} ms to TT initialization", ms)
             );
         }
 
@@ -223,7 +222,7 @@ namespace stoat {
 
     void Searcher::runBenchSearch(BenchInfo& info, const Position& pos, i32 depth) {
         if (initRootMoves(m_rootMoves, pos) == RootStatus::kNoLegalMoves) {
-            protocol::currHandler().printInfoString(std::cout, "no legal moves");
+            protocol::currHandler().printInfoString("no legal moves");
             return;
         }
 
@@ -253,12 +252,12 @@ namespace stoat {
 
     void Searcher::runDatagenSearch() {
         if (!m_limiter) {
-            std::cerr << "Missing limiter" << std::endl;
+            fmt::println(stderr, "Missing limiter");
             return;
         }
 
         if (m_threads.size() > 1) {
-            std::cerr << "Too many datagen threads" << std::endl;
+            fmt::println(stderr, "Too many datagen threads");
             return;
         }
 
@@ -810,7 +809,7 @@ namespace stoat {
             .hashfull = m_ttable.fullPermille(),
         };
 
-        protocol::currHandler().printSearchInfo(std::cout, info);
+        protocol::currHandler().printSearchInfo(info);
     }
 
     void Searcher::report(const ThreadData& bestThread, f64 time) {
@@ -825,6 +824,6 @@ namespace stoat {
         const auto& bestThread = m_threads[0];
 
         report(bestThread, time);
-        protocol::currHandler().printBestMove(std::cout, bestThread.lastPv.moves[0]);
+        protocol::currHandler().printBestMove(bestThread.lastPv.moves[0]);
     }
 } // namespace stoat

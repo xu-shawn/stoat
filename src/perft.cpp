@@ -71,12 +71,13 @@ namespace stoat {
             const auto value = doPerft(newPos, depth - 1);
 
             total += value;
-            std::cout << move << '\t' << value << '\n';
+            fmt::println("{}\t{}", move, value);
         }
 
         const auto nps = static_cast<usize>(static_cast<f64>(total) / start.elapsed());
 
-        std::cout << "\ntotal: " << total << '\n';
-        std::cout << nps << " nps" << std::endl;
+        fmt::println("");
+        fmt::println("total: {}", total);
+        fmt::println("{} nps", nps);
     }
 } // namespace stoat

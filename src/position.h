@@ -21,7 +21,6 @@
 #include "types.h"
 
 #include <array>
-#include <iostream>
 #include <span>
 #include <string>
 #include <string_view>
@@ -61,8 +60,6 @@ namespace stoat {
                 m_hand{hand} {}
 
         u32 m_hand{};
-
-        friend std::ostream& operator<<(std::ostream& stream, const Hand& hand);
     };
 
     class SfenError {
@@ -259,3 +256,13 @@ namespace stoat {
         void regen();
     };
 } // namespace stoat
+
+template <>
+struct fmt::formatter<stoat::Position> : fmt::formatter<std::string_view> {
+    format_context::iterator format(const stoat::Position& value, format_context& ctx) const;
+};
+
+template <>
+struct fmt::formatter<stoat::Hand> : fmt::formatter<std::string_view> {
+    format_context::iterator format(const stoat::Hand& value, format_context& ctx) const;
+};

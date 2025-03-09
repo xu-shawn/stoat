@@ -188,9 +188,27 @@ namespace stoat {
         [[nodiscard]] constexpr u16 get(i32 shift, u16 mask) const {
             return (m_move >> shift) & mask;
         }
-
-        friend std::ostream& operator<<(std::ostream& stream, const Move& move);
     };
 
     constexpr Move kNullMove{};
 } // namespace stoat
+
+template <>
+struct fmt::formatter<stoat::Move> : fmt::formatter<std::string_view> {
+    constexpr auto format(stoat::Move value, format_context& ctx) const {
+        if (value.isNull()) {
+            return format_to(ctx.out(), "????");
+        }
+
+        const auto to = value.to();
+        const auto from = value.from();
+
+        format_to(ctx.out(), "{}{}", from, to);
+
+        if (value.isPromo()) {
+            format_to(ctx.out(), "+");
+        }
+
+        return ctx.out();
+    }
+};

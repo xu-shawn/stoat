@@ -86,7 +86,7 @@ namespace stoat::tt {
         m_entries = util::alignedAlloc<Entry>(kCacheLineSize, m_entryCount);
 
         if (!m_entries) {
-            std::cerr << "Failed to reallocate TT - out of memory?" << std::endl;
+            fmt::println(stderr, "Failed to reallocate TT - out of memory?");
             std::terminate();
         }
 

@@ -18,8 +18,6 @@
 
 #include "ctrlc.h"
 
-#include <iostream>
-
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
@@ -55,7 +53,7 @@ namespace stoat::util::signal {
         );
 
         if (!result) {
-            std::cerr << "failed to set ctrl+c handler" << std::endl;
+            fmt::println(stderr, "failed to set ctrl+c handler");
         }
 #else
         struct sigaction action{.sa_flags = SA_RESTART};
@@ -68,7 +66,7 @@ namespace stoat::util::signal {
         };
 
         if (sigaction(SIGINT, &action, nullptr)) {
-            std::cerr << "failed to set ctrl+c handler" << std::endl;
+            fmt::println(stderr, "failed to set ctrl+c handler");
         }
 #endif
     }

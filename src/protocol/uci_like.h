@@ -46,9 +46,9 @@ namespace stoat::protocol {
             util::Instant startTime
         ) final;
 
-        void printSearchInfo(std::ostream& stream, const SearchInfo& info) const final;
-        void printInfoString(std::ostream& stream, std::string_view str) const final;
-        void printBestMove(std::ostream& stream, Move move) const final;
+        void printSearchInfo(const SearchInfo& info) const final;
+        void printInfoString(std::string_view str) const final;
+        void printBestMove(Move move) const final;
 
     protected:
         using CommandHandlerType = std::function<void(std::span<std::string_view>, util::Instant)>;
@@ -56,7 +56,7 @@ namespace stoat::protocol {
 
         void handleNewGame();
 
-        virtual void printOptionName(std::ostream& stream, std::string_view name) const = 0;
+        virtual void printOptionName(std::string_view name) const = 0;
         [[nodiscard]] virtual std::string transformOptionName(std::string_view name) const = 0;
 
         virtual void finishInitialInfo() const = 0;
@@ -66,13 +66,13 @@ namespace stoat::protocol {
         ) const = 0;
         [[nodiscard]] virtual util::Result<Move, InvalidMoveError> parseMove(std::string_view str) const = 0;
 
-        virtual void printBoard(std::ostream& stream, const Position& pos) const = 0;
-        virtual void printFen(std::ostream& stream, const Position& pos) const = 0;
-        virtual void printMove(std::ostream& stream, Move move) const = 0;
-        virtual void printMateScore(std::ostream& stream, i32 plies) const = 0;
+        virtual void printBoard(const Position& pos) const = 0;
+        virtual void printFen(const Position& pos) const = 0;
+        virtual void printMove(Move move) const = 0;
+        virtual void printMateScore(i32 plies) const = 0;
 
         // ech
-        virtual void printFenLine(std::ostream& stream, const Position& pos) const = 0;
+        virtual void printFenLine(const Position& pos) const = 0;
 
         [[nodiscard]] virtual std::string_view btimeToken() const = 0;
         [[nodiscard]] virtual std::string_view wtimeToken() const = 0;
@@ -80,7 +80,7 @@ namespace stoat::protocol {
         [[nodiscard]] virtual std::string_view bincToken() const = 0;
         [[nodiscard]] virtual std::string_view wincToken() const = 0;
 
-        virtual void printGoMateResponse(std::ostream& stream) const = 0;
+        virtual void printGoMateResponse() const = 0;
 
         EngineState& m_state;
 

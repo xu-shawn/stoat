@@ -110,7 +110,7 @@ namespace stoat::eval::nnue {
                 addAddSubSub(src.black, dst.black, blackAdd1, blackAdd2, blackSub1, blackSub2);
                 addAddSubSub(src.white, dst.white, whiteAdd1, whiteAdd2, whiteSub1, whiteSub2);
             } else {
-                std::cerr << "??" << std::endl;
+                fmt::println(stderr, "??");
                 assert(false);
                 std::terminate();
             }

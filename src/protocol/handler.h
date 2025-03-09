@@ -20,7 +20,6 @@
 
 #include "../types.h"
 
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <span>
@@ -88,9 +87,9 @@ namespace stoat::protocol {
         ) = 0;
 
         // engine -> gui
-        virtual void printSearchInfo(std::ostream& stream, const SearchInfo& info) const = 0;
-        virtual void printInfoString(std::ostream& stream, std::string_view str) const = 0;
-        virtual void printBestMove(std::ostream& stream, Move move) const = 0;
+        virtual void printSearchInfo(const SearchInfo& info) const = 0;
+        virtual void printInfoString(std::string_view str) const = 0;
+        virtual void printBestMove(Move move) const = 0;
         virtual void handleNoLegalMoves() const = 0;
         virtual bool handleEnteringKingsWin() const = 0;
     };

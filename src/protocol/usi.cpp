@@ -28,34 +28,32 @@ namespace stoat::protocol {
         registerCommandHandler("isready", [this](std::span<std::string_view>, util::Instant) {
             handleNewGame();
             m_state.searcher->ensureReady();
-            std::cout << "readyok" << std::endl;
+            fmt::println("readyok");
         });
         registerCommandHandler("gameover", [](std::span<std::string_view>, util::Instant) {});
-        registerCommandHandler("ping", [](std::span<std::string_view>, util::Instant) {
-            std::cout << "pong" << std::endl;
-        });
+        registerCommandHandler("ping", [](std::span<std::string_view>, util::Instant) { fmt::println("pong"); });
     }
 
     void UsiHandler::handleNoLegalMoves() const {
-        printInfoString(std::cout, "no legal moves");
-        std::cout << "bestmove resign" << std::endl;
+        printInfoString("no legal moves");
+        fmt::println("bestmove resign");
     }
 
     bool UsiHandler::handleEnteringKingsWin() const {
-        std::cout << "bestmove win" << std::endl;
+        fmt::println("bestmove win");
         return true;
     }
 
-    void UsiHandler::printOptionName(std::ostream& stream, std::string_view name) const {
+    void UsiHandler::printOptionName(std::string_view name) const {
         static constexpr std::array kFixedSemanticsOptions = {
             "Hash",
         };
 
         if (std::ranges::find(kFixedSemanticsOptions, name) != kFixedSemanticsOptions.end()) {
-            stream << "USI_";
+            fmt::print("USI_");
         }
 
-        stream << name;
+        fmt::print("{}", name);
     }
 
     std::string UsiHandler::transformOptionName(std::string_view name) const {
@@ -67,7 +65,7 @@ namespace stoat::protocol {
     }
 
     void UsiHandler::finishInitialInfo() const {
-        std::cout << "usiok" << std::endl;
+        fmt::println("usiok");
     }
 
     util::Result<Position, std::optional<std::string>> UsiHandler::parsePosition(std::span<std::string_view> args
@@ -91,24 +89,24 @@ namespace stoat::protocol {
         return Move::fromStr(str);
     }
 
-    void UsiHandler::printBoard(std::ostream& stream, const Position& pos) const {
-        stream << pos;
+    void UsiHandler::printBoard(const Position& pos) const {
+        fmt::print("{}", pos);
     }
 
-    void UsiHandler::printFen(std::ostream& stream, const Position& pos) const {
-        stream << pos.sfen();
+    void UsiHandler::printFen(const Position& pos) const {
+        fmt::print("{}", pos.sfen());
     }
 
-    void UsiHandler::printMove(std::ostream& stream, Move move) const {
-        stream << move;
+    void UsiHandler::printMove(Move move) const {
+        fmt::print("{}", move);
     }
 
-    void UsiHandler::printMateScore(std::ostream& stream, i32 plies) const {
-        stream << plies;
+    void UsiHandler::printMateScore(i32 plies) const {
+        fmt::print("{}", plies);
     }
 
-    void UsiHandler::printFenLine(std::ostream& stream, const Position& pos) const {
-        stream << "Sfen: " << pos.sfen() << '\n';
+    void UsiHandler::printFenLine(const Position& pos) const {
+        fmt::println("Sfen: {}", pos.sfen());
     }
 
     std::string_view UsiHandler::btimeToken() const {
@@ -127,7 +125,7 @@ namespace stoat::protocol {
         return "winc";
     }
 
-    void UsiHandler::printGoMateResponse(std::ostream& stream) const {
-        stream << "checkmate notimplemented" << std::endl;
+    void UsiHandler::printGoMateResponse() const {
+        fmt::println("checkmate notimplemented");
     }
 } // namespace stoat::protocol

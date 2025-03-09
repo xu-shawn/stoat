@@ -16,6 +16,7 @@
  * along with Stoat. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -30,10 +31,14 @@
 
 namespace stoat {
     namespace {
+        void init() {
+            std::setvbuf(stdout, nullptr, _IONBF, 0);
+
+            util::signal::init();
+        }
+
         i32 runDatagen(std::span<const std::string_view> args) {
-            const auto printUsage = [&] {
-                std::cerr << "usage: " << args[0] << " datagen <path> [threads]" << std::endl;
-            };
+            const auto printUsage = [&] { fmt::println(stderr, "usage: {} datagen <path> [threads]", args[0]); };
 
             if (args.size() < 3) {
                 printUsage();
@@ -43,7 +48,7 @@ namespace stoat {
             u32 threads = 1;
 
             if (args.size() >= 4 && !util::tryParse(threads, args[3])) {
-                std::cerr << "invalid thread count \"" << args[3] << "\"" << std::endl;
+                fmt::println(stderr, "invalid thread count \"{}\"", args[3]);
                 printUsage();
                 return 1;
             }
@@ -62,7 +67,7 @@ namespace stoat {
     } // namespace protocol
 
     i32 main(std::span<const std::string_view> args) {
-        util::signal::init();
+        init();
 
         protocol::EngineState state{};
 
@@ -113,7 +118,7 @@ namespace stoat {
             } else if (result == protocol::CommandResult::kUnknown) {
                 if (auto newHandler = protocol::createHandler(command, state)) {
                     if (searcher.isSearching()) {
-                        std::cerr << "Still searching" << std::endl;
+                        fmt::println(stderr, "Still searching");
                         continue;
                     }
 
@@ -124,7 +129,7 @@ namespace stoat {
 
                     handler->printInitialInfo();
                 } else {
-                    std::cerr << "Unknown command '" << command << "'" << std::endl;
+                    fmt::println(stderr, "Unknown command '{}'", command);
                 }
             }
         }

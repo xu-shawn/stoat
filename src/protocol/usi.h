@@ -31,7 +31,7 @@ namespace stoat::protocol {
         void handleNoLegalMoves() const final;
         bool handleEnteringKingsWin() const final;
 
-        void printOptionName(std::ostream& stream, std::string_view name) const final;
+        void printOptionName(std::string_view name) const final;
         [[nodiscard]] std::string transformOptionName(std::string_view name) const final;
 
         void finishInitialInfo() const final;
@@ -40,12 +40,12 @@ namespace stoat::protocol {
         ) const final;
         [[nodiscard]] util::Result<Move, InvalidMoveError> parseMove(std::string_view str) const final;
 
-        void printBoard(std::ostream& stream, const Position& pos) const final;
-        void printFen(std::ostream& stream, const Position& pos) const final;
-        void printMove(std::ostream& stream, Move move) const final;
-        void printMateScore(std::ostream& stream, i32 plies) const final;
+        void printBoard(const Position& pos) const final;
+        void printFen(const Position& pos) const final;
+        void printMove(Move move) const final;
+        void printMateScore(i32 plies) const final;
 
-        void printFenLine(std::ostream& stream, const Position& pos) const final;
+        void printFenLine(const Position& pos) const final;
 
         [[nodiscard]] std::string_view btimeToken() const final;
         [[nodiscard]] std::string_view wtimeToken() const final;
@@ -53,6 +53,6 @@ namespace stoat::protocol {
         [[nodiscard]] std::string_view bincToken() const final;
         [[nodiscard]] std::string_view wincToken() const final;
 
-        void printGoMateResponse(std::ostream& stream) const final;
+        void printGoMateResponse() const final;
     };
 } // namespace stoat::protocol

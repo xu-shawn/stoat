@@ -20,8 +20,7 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <iostream>
-#include <sstream>
+#include <iterator>
 
 #include "../eval/eval.h"
 #include "../eval/nnue.h"
@@ -32,28 +31,6 @@
 #include "common.h"
 
 namespace stoat::protocol {
-    namespace {
-        struct PrintScore {
-            Score value;
-
-            inline friend std::ostream& operator<<(std::ostream& stream, PrintScore score) {
-                if (score.value > 0) {
-                    stream << '+';
-                } else if (score.value < 0) {
-                    stream << '-';
-                }
-
-                const auto absScore = std::abs(score.value);
-
-                stream << (absScore / 100);
-                stream << '.';
-                stream << std::setw(2) << std::setfill('0') << (absScore % 100);
-
-                return stream;
-            }
-        };
-    } // namespace
-
     UciLikeHandler::UciLikeHandler(EngineState& state) :
             m_state{state} {
 #define REGISTER_HANDLER(Command) \
@@ -72,23 +49,30 @@ namespace stoat::protocol {
     }
 
     void UciLikeHandler::printInitialInfo() const {
-        std::cout << "id name " << kName << ' ' << kVersion << '\n';
-        std::cout << "id author " << kAuthor << '\n';
+        fmt::println("id name {} {}", kName, kVersion);
+        fmt::println("id author {}", kAuthor);
 
-        // dummy options for OB
-        std::cout << "option name ";
-        printOptionName(std::cout, "Hash");
-        std::cout << " type spin default " << tt::kDefaultTtSizeMib << " min " << tt::kTtSizeRange.min() << " max "
-                  << tt::kTtSizeRange.max() << '\n';
+        fmt::print("option name ");
+        printOptionName("Hash");
+        fmt::println(
+            " type spin default {} min {} max {}",
+            tt::kDefaultTtSizeMib,
+            tt::kTtSizeRange.min(),
+            tt::kTtSizeRange.max()
+        );
 
-        std::cout << "option name ";
-        printOptionName(std::cout, "Threads");
-        std::cout << " type spin default " << kDefaultThreadCount << " min " << kThreadCountRange.min() << " max "
-                  << kThreadCountRange.max() << '\n';
+        fmt::print("option name ");
+        printOptionName("Threads");
+        fmt::println(
+            " type spin default {} min {} max {}",
+            kDefaultThreadCount,
+            kThreadCountRange.min(),
+            kThreadCountRange.max()
+        );
 
-        std::cout << "option name ";
-        printOptionName(std::cout, "CuteChessWorkaround");
-        std::cout << " type check default false\n";
+        fmt::print("option name ");
+        printOptionName("CuteChessWorkaround");
+        fmt::println(" type check default false");
 
         finishInitialInfo();
     }
@@ -110,69 +94,69 @@ namespace stoat::protocol {
         return CommandResult::kUnknown;
     }
 
-    void UciLikeHandler::printSearchInfo(std::ostream& stream, const SearchInfo& info) const {
-        stream << "info depth " << info.depth;
+    void UciLikeHandler::printSearchInfo(const SearchInfo& info) const {
+        fmt::print("info depth {}", info.depth);
 
         if (info.seldepth) {
-            stream << " seldepth " << *info.seldepth;
+            fmt::print(" seldepth {}", *info.seldepth);
         }
 
         if (info.timeSec) {
             const auto ms = static_cast<usize>(*info.timeSec * 1000.0);
-            stream << " time " << ms;
+            fmt::print(" time {}", ms);
         }
 
-        stream << " nodes " << info.nodes;
+        fmt::print(" nodes {}", info.nodes);
 
         if (info.timeSec) {
             const auto nps = static_cast<usize>(static_cast<f64>(info.nodes) / *info.timeSec);
-            stream << " nps " << nps;
+            fmt::print(" nps {}", nps);
         }
 
-        stream << " score ";
+        fmt::print(" score ");
 
         if (std::holds_alternative<MateDisplayScore>(info.score)) {
             const auto plies = std::get<MateDisplayScore>(info.score).plies;
-            stream << "mate ";
-            printMateScore(std::cout, plies);
+            fmt::print("mate ");
+            printMateScore(plies);
         } else {
             const auto score = std::get<CpDisplayScore>(info.score).score;
-            stream << "cp " << score;
+            fmt::print("cp {}", score);
         }
 
         if (info.scoreBound == ScoreBound::kUpperBound) {
-            stream << " upperbound";
+            fmt::print(" upperbound");
         } else if (info.scoreBound == ScoreBound::kLowerBound) {
-            stream << " lowerbound";
+            fmt::print(" lowerbound");
         }
 
         if (info.hashfull) {
-            stream << " hashfull " << *info.hashfull;
+            fmt::print(" hashfull {}", *info.hashfull);
         }
 
-        stream << " pv";
+        fmt::print(" pv");
 
         for (usize i = 0; i < info.pv.length; ++i) {
-            stream << ' ';
-            printMove(stream, info.pv.moves[i]);
+            fmt::print(" ");
+            printMove(info.pv.moves[i]);
         }
 
-        stream << std::endl;
+        fmt::println("");
     }
 
-    void UciLikeHandler::printInfoString(std::ostream& stream, std::string_view str) const {
-        stream << "info string " << str << std::endl;
+    void UciLikeHandler::printInfoString(std::string_view str) const {
+        fmt::println("info string {}", str);
     }
 
-    void UciLikeHandler::printBestMove(std::ostream& stream, Move move) const {
-        stream << "bestmove ";
-        printMove(stream, move);
-        stream << std::endl;
+    void UciLikeHandler::printBestMove(Move move) const {
+        fmt::print("bestmove ");
+        printMove(move);
+        fmt::println("");
     }
 
     void UciLikeHandler::registerCommandHandler(std::string_view command, CommandHandlerType handler) {
         if (m_cmdHandlers.contains(command)) {
-            std::cerr << "tried to overwrite command handler for '" << command << "'" << std::endl;
+            fmt::println(stderr, "tried to overwrite command handler for '{}'", command);
             return;
         }
 
@@ -181,7 +165,7 @@ namespace stoat::protocol {
 
     void UciLikeHandler::handleNewGame() {
         if (m_state.searcher->isSearching()) {
-            std::cerr << "Still searching" << std::endl;
+            fmt::println(stderr, "Still searching");
             return;
         }
 
@@ -190,7 +174,7 @@ namespace stoat::protocol {
 
     void UciLikeHandler::handle_position(std::span<std::string_view> args, [[maybe_unused]] util::Instant startTime) {
         if (m_state.searcher->isSearching()) {
-            std::cerr << "Still searching" << std::endl;
+            fmt::println(stderr, "Still searching");
             return;
         }
 
@@ -212,7 +196,7 @@ namespace stoat::protocol {
                 m_state.keyHistory.clear();
             } else {
                 if (const auto err = parsed.takeErr()) {
-                    std::cerr << *err << std::endl;
+                    fmt::println("{}", *err);
                 }
                 return;
             }
@@ -231,7 +215,7 @@ namespace stoat::protocol {
                 m_state.keyHistory.push_back(m_state.pos.key());
                 m_state.pos = m_state.pos.applyMove(parsedMove.take());
             } else {
-                std::cerr << "Invalid move '" << args[i] << "'" << std::endl;
+                fmt::println(stderr, "Invalid move '{}'", args[i]);
                 break;
             }
         }
@@ -239,7 +223,7 @@ namespace stoat::protocol {
 
     void UciLikeHandler::handle_go(std::span<std::string_view> args, util::Instant startTime) {
         if (m_state.searcher->isSearching()) {
-            std::cerr << "Still searching" << std::endl;
+            fmt::println(stderr, "Still searching");
             return;
         }
 
@@ -262,38 +246,38 @@ namespace stoat::protocol {
                 infinite = true;
             } else if (args[i] == "depth") {
                 if (++i == args.size()) {
-                    std::cerr << "Missing depth" << std::endl;
+                    fmt::println(stderr, "Missing depth");
                     return;
                 }
 
                 if (!util::tryParse(maxDepth, args[i])) {
-                    std::cerr << "Invalid depth '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid depth '{}'", args[i]);
                     return;
                 }
             } else if (args[i] == "nodes") {
                 if (++i == args.size()) {
-                    std::cerr << "Missing node limit" << std::endl;
+                    fmt::println(stderr, "Missing node limit");
                     return;
                 }
 
                 usize maxNodes{};
 
                 if (!util::tryParse(maxNodes, args[i])) {
-                    std::cerr << "Invalid node limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid node limit '{}'", args[i]);
                     return;
                 }
 
                 limiter->addLimiter<limit::NodeLimiter>(maxNodes);
             } else if (args[i] == "movetime") {
                 if (++i == args.size()) {
-                    std::cerr << "Missing move time limit" << std::endl;
+                    fmt::println(stderr, "Missing move time limit");
                     return;
                 }
 
                 i64 maxTimeMs{};
 
                 if (!util::tryParse(maxTimeMs, args[i])) {
-                    std::cerr << "Invalid move time limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid move time limit '{}'", args[i]);
                     return;
                 }
 
@@ -303,14 +287,14 @@ namespace stoat::protocol {
                 limiter->addLimiter<limit::MoveTimeLimiter>(startTime, maxTimeSec);
             } else if (args[i] == btimeToken()) {
                 if (++i == args.size()) {
-                    std::cerr << "Missing " << btimeToken() << " limit" << std::endl;
+                    fmt::println(stderr, "Missing {} limit", btimeToken());
                     return;
                 }
 
                 i64 btimeMs{};
 
                 if (!util::tryParse(btimeMs, args[i])) {
-                    std::cerr << "Invalid " << btimeToken() << " limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid {} limit '{}'", btimeToken(), args[i]);
                     return;
                 }
 
@@ -318,14 +302,14 @@ namespace stoat::protocol {
                 btime = static_cast<f64>(btimeMs) / 1000.0;
             } else if (args[i] == wtimeToken()) {
                 if (++i == args.size()) {
-                    std::cerr << "Missing " << wtimeToken() << " limit" << std::endl;
+                    fmt::println(stderr, "Missing {} limit", wtimeToken());
                     return;
                 }
 
                 i64 wtimeMs{};
 
                 if (!util::tryParse(wtimeMs, args[i])) {
-                    std::cerr << "Invalid " << wtimeToken() << " limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid {} limit '{}'", wtimeToken(), args[i]);
                     return;
                 }
 
@@ -333,14 +317,14 @@ namespace stoat::protocol {
                 wtime = static_cast<f64>(wtimeMs) / 1000.0;
             } else if (args[i] == bincToken()) {
                 if (++i == args.size()) {
-                    std::cerr << "Missing " << bincToken() << " limit" << std::endl;
+                    fmt::println(stderr, "Missing {} limit", bincToken());
                     return;
                 }
 
                 i64 bincMs{};
 
                 if (!util::tryParse(bincMs, args[i])) {
-                    std::cerr << "Invalid " << bincToken() << " limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid {} limit '{}'", bincToken(), args[i]);
                     return;
                 }
 
@@ -348,14 +332,14 @@ namespace stoat::protocol {
                 binc = static_cast<f64>(bincMs) / 1000.0;
             } else if (args[i] == wincToken()) {
                 if (++i == args.size()) {
-                    std::cerr << "Missing " << wincToken() << " limit" << std::endl;
+                    fmt::println(stderr, "Missing {} limit", wincToken());
                     return;
                 }
 
                 i64 wincMs{};
 
                 if (!util::tryParse(wincMs, args[i])) {
-                    std::cerr << "Invalid " << wincToken() << " limit '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid {} limit '{}'", wincToken(), args[i]);
                     return;
                 }
 
@@ -363,22 +347,22 @@ namespace stoat::protocol {
                 winc = static_cast<f64>(wincMs) / 1000.0;
             } else if (args[i] == "byoyomi") {
                 if (++i == args.size()) {
-                    std::cerr << "Missing byoyomi" << std::endl;
+                    fmt::println(stderr, "Missing byoyomi");
                     return;
                 }
 
                 i64 byoyomiMs{};
 
                 if (!util::tryParse(byoyomiMs, args[i])) {
-                    std::cerr << "Invalid byoyomi '" << args[i] << "'" << std::endl;
+                    fmt::println(stderr, "Invalid byoyomi '{}'", args[i]);
                     return;
                 }
 
                 byoyomiMs = std::max<i64>(byoyomiMs, 0);
                 byoyomi = static_cast<f64>(byoyomiMs) / 1000.0;
             } else if (args[i] == "mate") {
-                printInfoString(std::cout, "go mate not supported");
-                printGoMateResponse(std::cout);
+                printInfoString("go mate not supported");
+                printGoMateResponse();
                 return;
             }
         }
@@ -395,7 +379,7 @@ namespace stoat::protocol {
 
             limiter->addLimiter<limit::TimeManager>(startTime, limits);
         } else if (inc) {
-            printInfoString(std::cout, "Warning: increment given but no time, ignoring");
+            printInfoString("Warning: increment given but no time, ignoring");
         }
 
         m_state.searcher
@@ -406,13 +390,13 @@ namespace stoat::protocol {
         if (m_state.searcher->isSearching()) {
             m_state.searcher->stop();
         } else {
-            std::cerr << "Not searching" << std::endl;
+            fmt::println(stderr, "Not searching");
         }
     }
 
     void UciLikeHandler::handle_setoption(std::span<std::string_view> args, [[maybe_unused]] util::Instant startTime) {
         if (m_state.searcher->isSearching()) {
-            std::cerr << "Still searching" << std::endl;
+            fmt::println(stderr, "Still searching");
             return;
         }
 
@@ -425,29 +409,30 @@ namespace stoat::protocol {
         const auto valueIdx = std::distance(args.begin(), std::ranges::find(args, "value"));
 
         if (valueIdx == 1) {
-            std::cerr << "Missing option name" << std::endl;
+            fmt::println(stderr, "Missing option name");
             return;
         }
 
         if (valueIdx >= args.size() - 1) {
-            std::cerr << "Missing value" << std::endl;
+            fmt::println(stderr, "Missing value");
             return;
         }
 
         if (valueIdx > 2) {
-            std::ostringstream str{};
+            std::string str{};
+            auto itr = std::back_inserter(str);
 
             bool first = true;
             for (usize i = 2; i < valueIdx; ++i) {
                 if (!first) {
-                    str << ' ';
+                    fmt::format_to(itr, " {}", args[i]);
                 } else {
+                    fmt::format_to(itr, "{}", args[i]);
                     first = false;
                 }
-                str << args[i];
             }
 
-            printInfoString(std::cout, "Warning: spaces in option names not supported, skipping \"" + str.str() + "\"");
+            printInfoString(fmt::format("Warning: spaces in option names not supported, skipping \"{}\"", str));
         }
 
         std::string name{};
@@ -458,19 +443,19 @@ namespace stoat::protocol {
 
         name = transformOptionName(name);
 
-        std::ostringstream valueStr{};
+        std::string value{};
+        auto itr = std::back_inserter(value);
 
         bool first = true;
         for (usize i = valueIdx + 1; i < args.size(); ++i) {
             if (!first) {
-                valueStr << ' ';
+                fmt::format_to(itr, " {}", args[i]);
             } else {
+                fmt::format_to(itr, "{}", args[i]);
                 first = false;
             }
-            valueStr << args[i];
         }
 
-        const auto value = valueStr.view();
         assert(!value.empty());
 
         if (name == "hash") {
@@ -478,23 +463,23 @@ namespace stoat::protocol {
                 const auto size = tt::kTtSizeRange.clamp(*newHash);
                 m_state.searcher->setTtSize(size);
             } else {
-                std::cerr << "Invalid hash size '" << value << "'" << std::endl;
+                fmt::println(stderr, "Invalid hash size '{}'", value);
             }
         } else if (name == "threads") {
             if (const auto newThreadCount = util::tryParse<u32>(value)) {
                 const auto threadCount = kThreadCountRange.clamp(*newThreadCount);
                 m_state.searcher->setThreadCount(threadCount);
             } else {
-                std::cerr << "Invalid thread count '" << value << "'" << std::endl;
+                fmt::println(stderr, "Invalid thread count '{}'", value);
             }
         } else if (name == "cutechessworkaround") {
             if (const auto newCcWorkaround = util::tryParseBool(value)) {
                 m_state.searcher->setCuteChessWorkaround(*newCcWorkaround);
             } else {
-                std::cerr << "Invalid check value '" << value << "'" << std::endl;
+                fmt::println(stderr, "Invalid check value '{}'", value);
             }
         } else {
-            std::cerr << "Unknown option '" << args[1] << "'" << std::endl;
+            fmt::println(stderr, "Unknown option '{}'", value);
         }
     }
 
@@ -502,41 +487,31 @@ namespace stoat::protocol {
         [[maybe_unused]] std::span<std::string_view> args,
         [[maybe_unused]] util::Instant startTime
     ) {
-        const auto printKey = [](u64 key) {
-            std::ostringstream str{};
-            str << "0x" << std::hex << std::setw(16) << std::setfill('0') << key;
-            std::cout << str.view();
-        };
+        fmt::println("");
+        printBoard(m_state.pos);
 
-        std::cout << '\n';
-        printBoard(std::cout, m_state.pos);
+        fmt::println("");
+        fmt::println("");
+        printFenLine(m_state.pos);
 
-        std::cout << "\n\n";
-        printFenLine(std::cout, m_state.pos);
+        fmt::println("Key: {:016x}", m_state.pos.key());
 
-        std::cout << "Key: ";
-        printKey(m_state.pos.key());
-
-        std::cout << "\nCheckers:";
+        fmt::println("Checkers:");
 
         auto checkers = m_state.pos.checkers();
         while (!checkers.empty()) {
-            std::cout << ' ' << checkers.popLsb();
+            fmt::println(" {}", checkers.popLsb());
         }
 
-        std::cout << "\nPinned:";
+        fmt::println("Pinned:");
 
         auto pinned = m_state.pos.pinned();
         while (!pinned.empty()) {
-            std::cout << ' ' << pinned.popLsb();
+            fmt::println(" {}", pinned.popLsb());
         }
 
-        std::cout << "\nStatic eval: ";
-
         const auto staticEval = eval::staticEvalOnce(m_state.pos);
-        std::cout << PrintScore{staticEval};
-
-        std::cout << std::endl;
+        fmt::println("Static eval: {:+}.{:02}", staticEval / 100, std::abs(staticEval) % 100);
     }
 
     void UciLikeHandler::handle_splitperft(std::span<std::string_view> args, [[maybe_unused]] util::Instant startTime) {
@@ -553,6 +528,6 @@ namespace stoat::protocol {
         [[maybe_unused]] std::span<std::string_view> args,
         [[maybe_unused]] util::Instant startTime
     ) {
-        std::cout << eval::nnue::evaluateOnce(m_state.pos) << std::endl;
+        fmt::println("{}", eval::nnue::evaluateOnce(m_state.pos));
     }
 } // namespace stoat::protocol

@@ -19,7 +19,7 @@
 #include "position.h"
 
 #include <algorithm>
-#include <sstream>
+#include <iterator>
 
 #include "attacks/attacks.h"
 #include "eval/nnue.h"
@@ -123,7 +123,8 @@ namespace stoat {
     }
 
     std::string Hand::sfen(bool uppercase) const {
-        std::ostringstream sfen{};
+        std::string sfen{};
+        auto itr = std::back_inserter(sfen);
 
         const auto print = [&](PieceType pt) {
             const auto count = this->count(pt);
@@ -133,13 +134,13 @@ namespace stoat {
             }
 
             if (count > 1) {
-                sfen << count;
+                fmt::format_to(itr, "{}", count);
             }
 
             const auto c = pt.str()[0];
             assert(c != '+' && c != '?');
 
-            sfen << (uppercase ? c : static_cast<char>(std::tolower(c)));
+            fmt::format_to(itr, "{}", uppercase ? c : static_cast<char>(std::tolower(c)));
         };
 
         print(PieceTypes::kRook);
@@ -150,41 +151,7 @@ namespace stoat {
         print(PieceTypes::kLance);
         print(PieceTypes::kPawn);
 
-        return sfen.str();
-    }
-
-    std::ostream& operator<<(std::ostream& stream, const Hand& hand) {
-        bool first = true;
-
-        const auto print = [&](PieceType pt) {
-            const auto count = hand.count(pt);
-
-            if (count == 0) {
-                return;
-            }
-
-            if (!first) {
-                stream << ' ';
-            } else {
-                first = false;
-            }
-
-            if (count > 1) {
-                stream << count;
-            }
-
-            stream << pt;
-        };
-
-        print(PieceTypes::kRook);
-        print(PieceTypes::kBishop);
-        print(PieceTypes::kGold);
-        print(PieceTypes::kSilver);
-        print(PieceTypes::kKnight);
-        print(PieceTypes::kLance);
-        print(PieceTypes::kPawn);
-
-        return stream;
+        return sfen;
     }
 
     void PositionKeys::clear() {
@@ -677,7 +644,8 @@ namespace stoat {
     }
 
     std::string Position::sfen() const {
-        std::ostringstream sfen{};
+        std::string sfen{};
+        auto itr = std::back_inserter(sfen);
 
         for (i32 rank = 8; rank >= 0; --rank) {
             for (i32 file = 0; file < 9; ++file) {
@@ -687,34 +655,31 @@ namespace stoat {
                          ++file, ++emptySquares)
                     {}
 
-                    sfen << emptySquares;
+                    fmt::format_to(itr, "{}", emptySquares);
                 } else {
-                    sfen << piece;
+                    fmt::format_to(itr, "{}", piece);
                 }
             }
 
             if (rank > 0) {
-                sfen << '/';
+                fmt::format_to(itr, "/");
             }
         }
 
-        sfen << (stm() == Colors::kBlack ? " b " : " w ");
+        fmt::format_to(itr, "{}", stm() == Colors::kBlack ? " b " : " w ");
 
         const auto& blackHand = hand(Colors::kBlack);
         const auto& whiteHand = hand(Colors::kWhite);
 
         if (blackHand.empty() && whiteHand.empty()) {
-            sfen << '-';
+            fmt::format_to(itr, "-");
         } else {
-            sfen << blackHand.sfen(true);
-            sfen << whiteHand.sfen(false);
+            fmt::format_to(itr, "{}{}", blackHand.sfen(true), whiteHand.sfen(false));
         }
 
-        sfen << ' ';
+        fmt::format_to(itr, " {}", moveCount());
 
-        sfen << moveCount();
-
-        return sfen.str();
+        return sfen;
     }
 
     void Position::regenKey() {
@@ -1058,31 +1023,73 @@ namespace stoat {
 
         return fromSfenParts(parts);
     }
+} // namespace stoat
 
-    std::ostream& operator<<(std::ostream& stream, const Position& pos) {
-        stream << "   9   8   7   6   5   4   3   2   1\n";
-        stream << " +---+---+---+---+---+---+---+---+---+\n";
+fmt::format_context::iterator fmt::formatter<stoat::Position>::format(const stoat::Position& value, format_context& ctx)
+    const {
+    using namespace stoat;
 
-        for (i32 rank = 8; rank >= 0; --rank) {
-            for (i32 file = 0; file < 9; ++file) {
-                const auto piece = pos.pieceOn(Square::fromFileRank(file, rank));
+    format_to(ctx.out(), "   9   8   7   6   5   4   3   2   1\n");
+    format_to(ctx.out(), " +---+---+---+---+---+---+---+---+---+\n");
 
-                if (piece) {
-                    stream << " |" << (!piece.type().isPromoted() ? " " : "") << piece;
-                } else {
-                    stream << " |  ";
-                }
+    for (i32 rank = 8; rank >= 0; --rank) {
+        for (i32 file = 0; file < 9; ++file) {
+            const auto piece = value.pieceOn(Square::fromFileRank(file, rank));
+            if (piece) {
+                format_to(ctx.out(), " |{}{}", !piece.type().isPromoted() ? " " : "", piece);
+            } else {
+                format_to(ctx.out(), " |  ");
             }
-
-            stream << " | " << static_cast<char>('a' + 8 - rank);
-            stream << "\n +---+---+---+---+---+---+---+---+---+\n";
         }
 
-        stream << "\nBlack pieces in hand: " << pos.hand(Colors::kBlack);
-        stream << "\nWhite pieces in hand: " << pos.hand(Colors::kWhite);
-
-        stream << "\n\n" << (pos.stm() == Colors::kBlack ? "Black" : "White") << " to move";
-
-        return stream;
+        format_to(ctx.out(), " | {}\n", static_cast<char>('a' + 8 - rank));
+        format_to(ctx.out(), " +---+---+---+---+---+---+---+---+---+\n");
     }
-} // namespace stoat
+
+    format_to(ctx.out(), "\n");
+
+    format_to(ctx.out(), "Black pieces in hand: {}\n", value.hand(Colors::kBlack));
+    format_to(ctx.out(), "White pieces in hand: {}\n", value.hand(Colors::kWhite));
+
+    format_to(ctx.out(), "\n");
+
+    format_to(ctx.out(), "{} to move", value.stm() == stoat::Colors::kBlack ? "Black" : "White");
+
+    return ctx.out();
+}
+
+fmt::format_context::iterator fmt::formatter<stoat::Hand>::format(const stoat::Hand& value, format_context& ctx) const {
+    using namespace stoat;
+
+    bool first = true;
+
+    const auto print = [&](PieceType pt) {
+        const auto count = value.count(pt);
+
+        if (count == 0) {
+            return;
+        }
+
+        if (!first) {
+            format_to(ctx.out(), " ");
+        } else {
+            first = false;
+        }
+
+        if (count > 1) {
+            format_to(ctx.out(), "{}", count);
+        }
+
+        format_to(ctx.out(), "{}", pt);
+    };
+
+    print(PieceTypes::kRook);
+    print(PieceTypes::kBishop);
+    print(PieceTypes::kGold);
+    print(PieceTypes::kSilver);
+    print(PieceTypes::kKnight);
+    print(PieceTypes::kLance);
+    print(PieceTypes::kPawn);
+
+    return ctx.out();
+}

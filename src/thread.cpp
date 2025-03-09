@@ -18,7 +18,7 @@
 
 #include "thread.h"
 
-#include <iostream>
+#include <iterator>
 
 namespace stoat {
     ThreadData::ThreadData() {
