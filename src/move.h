@@ -195,20 +195,25 @@ namespace stoat {
 
 template <>
 struct fmt::formatter<stoat::Move> : fmt::formatter<std::string_view> {
-    constexpr auto format(stoat::Move value, format_context& ctx) const {
+    constexpr format_context::iterator format(stoat::Move value, format_context& ctx) const {
         if (value.isNull()) {
             return format_to(ctx.out(), "????");
+        }
+
+        if (value.isDrop()) {
+            const auto piece = value.dropPiece();
+            const auto square = value.to();
+
+            return format_to(ctx.out(), "{}*{}", piece, square);
         }
 
         const auto from = value.from();
         const auto to = value.to();
 
         if (value.isPromo()) {
-            format_to(ctx.out(), "{}{}+", from, to);
+            return format_to(ctx.out(), "{}{}+", from, to);
         } else {
-            format_to(ctx.out(), "{}{}", from, to);
+            return format_to(ctx.out(), "{}{}", from, to);
         }
-
-        return ctx.out();
     }
 };

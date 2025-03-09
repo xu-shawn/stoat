@@ -19,7 +19,6 @@
 #include "uci_like.h"
 
 #include <algorithm>
-#include <iomanip>
 #include <iterator>
 
 #include "../eval/eval.h"
