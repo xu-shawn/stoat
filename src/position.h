@@ -108,6 +108,22 @@ namespace stoat {
         class NnueState;
     } // namespace eval::nnue
 
+    struct KingPair {
+        std::array<Square, 2> squares{};
+
+        [[nodiscard]] constexpr Square kingSq(Color c) const {
+            assert(c);
+            return squares[c.idx()];
+        }
+
+        [[nodiscard]] constexpr Square relativeKingSq(Color c) const {
+            assert(c);
+            return squares[c.idx()].relative(c);
+        }
+
+        [[nodiscard]] constexpr bool operator==(const KingPair& other) const = default;
+    };
+
     class Position {
     public:
         Position();
@@ -179,9 +195,13 @@ namespace stoat {
             return m_moveCount;
         }
 
-        [[nodiscard]] inline Square king(Color c) const {
+        [[nodiscard]] inline Square kingSq(Color c) const {
             assert(c);
-            return pieceBb(PieceTypes::kKing, c).lsb();
+            return m_kingSquares.kingSq(c);
+        }
+
+        [[nodiscard]] inline KingPair kingSquares() const {
+            return m_kingSquares;
         }
 
         [[nodiscard]] SennichiteStatus testSennichite(
@@ -237,6 +257,8 @@ namespace stoat {
 
         Bitboard m_checkers{};
         Bitboard m_pinned{};
+
+        KingPair m_kingSquares{};
 
         Color m_stm{Colors::kBlack};
 
