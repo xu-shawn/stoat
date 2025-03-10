@@ -21,7 +21,6 @@
 namespace stoat::limit {
     namespace {
         constexpr usize kTimeCheckInterval = 2048;
-        constexpr f64 kMoveOverhead = 0.01;
     } // namespace
 
     NodeLimiter::NodeLimiter(usize maxNodes) :
@@ -65,10 +64,14 @@ namespace stoat::limit {
         return stopSoft(nodes);
     }
 
-    TimeManager::TimeManager(util::Instant startTime, const TimeLimits& limits) :
+    TimeManager::TimeManager(util::Instant startTime, const TimeLimits& limits, u32 moveOverheadMs) :
             m_startTime{startTime} {
-        const auto remaining = std::max(limits.remaining - kMoveOverhead, 0.0);
-        const auto extra = std::max(limits.byoyomi - kMoveOverhead, 0.0);
+        fmt::println("info string move overhead: {} ms", moveOverheadMs);
+
+        const auto moveOverhead = static_cast<f64>(moveOverheadMs) / 1000.0;
+
+        const auto remaining = std::max(limits.remaining - moveOverhead, 0.0);
+        const auto extra = std::max(limits.byoyomi - moveOverhead, 0.0);
 
         const auto baseTime = std::min(remaining * 0.05 + limits.increment * 0.5, remaining) + extra;
         const auto optTime = baseTime * 0.6;

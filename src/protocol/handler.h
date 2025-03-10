@@ -33,11 +33,16 @@
 #include "../search.h"
 
 namespace stoat::protocol {
+    constexpr u32 kDefaultMoveOverhead = 10;
+    constexpr util::Range<u32> kMoveOverheadRange{0, 5000};
+
     struct EngineState {
         Position pos{Position::startpos()};
         std::vector<u64> keyHistory{};
 
         Searcher* searcher{};
+
+        u32 moveOverhead{kDefaultMoveOverhead};
     };
 
     struct CpDisplayScore {

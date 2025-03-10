@@ -120,7 +120,7 @@ namespace stoat::limit {
 
     class TimeManager final : public ISearchLimiter {
     public:
-        TimeManager(util::Instant startTime, const TimeLimits& limits);
+        TimeManager(util::Instant startTime, const TimeLimits& limits, u32 moveOverheadMs);
         ~TimeManager() final = default;
 
         void addMoveNodes(Move move, usize nodes) final;

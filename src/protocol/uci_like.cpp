@@ -70,6 +70,15 @@ namespace stoat::protocol {
         );
 
         fmt::print("option name ");
+        printOptionName("MoveOverhead");
+        fmt::println(
+            " type spin default {} min {} max {}",
+            kDefaultMoveOverhead,
+            kMoveOverheadRange.min(),
+            kMoveOverheadRange.max()
+        );
+
+        fmt::print("option name ");
         printOptionName("CuteChessWorkaround");
         fmt::println(" type check default false");
 
@@ -376,7 +385,7 @@ namespace stoat::protocol {
                 .byoyomi = byoyomi.value_or(0.0),
             };
 
-            limiter->addLimiter<limit::TimeManager>(startTime, limits);
+            limiter->addLimiter<limit::TimeManager>(startTime, limits, m_state.moveOverhead);
         } else if (inc) {
             printInfoString("Warning: increment given but no time, ignoring");
         }
@@ -470,6 +479,13 @@ namespace stoat::protocol {
                 m_state.searcher->setThreadCount(threadCount);
             } else {
                 fmt::println(stderr, "Invalid thread count '{}'", value);
+            }
+        } else if (name == "moveoverhead") {
+            if (const auto newMoveOverhead = util::tryParse<u32>(value)) {
+                const auto moveOverhead = kMoveOverheadRange.clamp(*newMoveOverhead);
+                m_state.moveOverhead = moveOverhead;
+            } else {
+                fmt::println(stderr, "Invalid move overhead '{}'", value);
             }
         } else if (name == "cutechessworkaround") {
             if (const auto newCcWorkaround = util::tryParseBool(value)) {
