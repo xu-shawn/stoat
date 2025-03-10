@@ -227,13 +227,6 @@ namespace stoat::eval::nnue {
 
         activateHand(Colors::kBlack);
         activateHand(Colors::kWhite);
-
-        auto copy = *this;
-
-        for (const auto c : {Colors::kBlack, Colors::kWhite}) {
-            copy.reset(pos, c);
-            assert(copy.color(c) == color(c));
-        }
     }
 
     NnueState::NnueState() {
