@@ -511,19 +511,19 @@ namespace stoat::protocol {
 
         fmt::println("Key: {:016x}", m_state.pos.key());
 
-        fmt::println("Checkers:");
-
+        fmt::print("Checkers:");
         auto checkers = m_state.pos.checkers();
         while (!checkers.empty()) {
-            fmt::println(" {}", checkers.popLsb());
+            fmt::print(" {}", checkers.popLsb());
         }
+        fmt::println("");
 
-        fmt::println("Pinned:");
-
+        fmt::print("Pinned:");
         auto pinned = m_state.pos.pinned();
         while (!pinned.empty()) {
-            fmt::println(" {}", pinned.popLsb());
+            fmt::print(" {}", pinned.popLsb());
         }
+        fmt::println("");
 
         const auto staticEval = eval::staticEvalOnce(m_state.pos);
         fmt::println("Static eval: {:+}.{:02}", staticEval / 100, std::abs(staticEval) % 100);
