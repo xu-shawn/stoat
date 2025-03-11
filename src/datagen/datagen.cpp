@@ -247,10 +247,10 @@ namespace stoat::datagen {
                         for (usize i = 0; i < keyHistory.size() - 1; ++i) {
                             fmt::print(errStream, " {:016x}", keyHistory[i]);
                         }
-                        fmt::println("");
+                        fmt::println(errStream, "");
 
-                        fmt::println("Pos: {}", oldPos.sfen());
-                        fmt::println("Move: {}", move);
+                        fmt::println(errStream, "Pos: {}", oldPos.sfen());
+                        fmt::println(errStream, "Move: {}", move);
 
                         errStream.flush();
 
