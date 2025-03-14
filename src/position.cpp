@@ -305,10 +305,14 @@ namespace stoat {
         const auto bishopsRooks = pieceBb(PieceTypes::kBishop, stm) | pieceBb(PieceTypes::kRook, stm)
                                 | pieceBb(PieceTypes::kPromotedBishop, stm) | pieceBb(PieceTypes::kPromotedRook, stm);
 
+        const auto hand = this->hand(stm);
+
         i32 score = 0;
 
         score += 5 * (promoZone & bishopsRooks).popcount();
         score += (promoZone & colorBb(stm) ^ king ^ bishopsRooks).popcount();
+        score += hand.count(PieceTypes::kPawn) + hand.count(PieceTypes::kLance) + hand.count(PieceTypes::kKnight)
+               + hand.count(PieceTypes::kSilver) + hand.count(PieceTypes::kGold) + (hand.count(PieceTypes::kBishop) + hand.count(PieceTypes::kRook)) * 5;
         score += stm == Colors::kWhite;
 
         return score >= 28;
