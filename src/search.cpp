@@ -609,7 +609,10 @@ namespace stoat {
                 curr.excluded = kNullMove;
 
                 if (score < sBeta) {
-                    if (!kPvNode && score < sBeta - 16) {
+                    if (!kPvNode
+                        && (score < sBeta - 16
+                            || (move.isDrop() && Square::chebyshev(move.to(), pos.kingSq(pos.stm().flip())) <= 1)))
+                    {
                         extension = 2;
                     } else {
                         extension = 1;
