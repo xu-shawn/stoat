@@ -430,7 +430,7 @@ namespace stoat {
 
         assert(kPvNode || alpha == beta - 1);
 
-        if (!kRootNode && thread.isMainThread() && thread.rootDepth > 1) {
+        if (!kRootNode && (hasStopped() || thread.isMainThread() && thread.rootDepth > 1)) {
             if (m_limiter->stopHard(thread.loadNodes())) {
                 m_stop.store(true, std::memory_order::relaxed);
                 return 0;
@@ -703,7 +703,7 @@ namespace stoat {
     Score Searcher::qsearch(ThreadData& thread, const Position& pos, i32 ply, Score alpha, Score beta) {
         assert(ply >= 0 && ply <= kMaxDepth);
 
-        if (thread.isMainThread() && thread.rootDepth > 1) {
+        if (hasStopped() || thread.isMainThread() && thread.rootDepth > 1) {
             if (m_limiter->stopHard(thread.loadNodes())) {
                 m_stop.store(true, std::memory_order::relaxed);
                 return 0;
