@@ -504,7 +504,7 @@ namespace stoat {
         }();
 
         if (!kPvNode && !pos.isInCheck() && !curr.excluded) {
-            if (depth <= 4 && curr.staticEval - 80 * (depth - improving) >= beta) {
+            if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
 
