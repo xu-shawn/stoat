@@ -116,18 +116,10 @@ namespace stoat::eval::nnue {
                     auto i1_2 = load(&inputs[inputIdx + kChunkSize16 * 2]);
                     auto i1_3 = load(&inputs[inputIdx + kChunkSize16 * 3]);
 
-                    auto i2_0 = _mm256_load_si256(
-                        reinterpret_cast<const __m256i*>(&inputs[inputIdx + kPairCount + kChunkSize16 * 0])
-                    );
-                    auto i2_1 = _mm256_load_si256(
-                        reinterpret_cast<const __m256i*>(&inputs[inputIdx + kPairCount + kChunkSize16 * 1])
-                    );
-                    auto i2_2 = _mm256_load_si256(
-                        reinterpret_cast<const __m256i*>(&inputs[inputIdx + kPairCount + kChunkSize16 * 2])
-                    );
-                    auto i2_3 = _mm256_load_si256(
-                        reinterpret_cast<const __m256i*>(&inputs[inputIdx + kPairCount + kChunkSize16 * 3])
-                    );
+                    auto i2_0 = load(&inputs[inputIdx + kPairCount + kChunkSize16 * 0]);
+                    auto i2_1 = load(&inputs[inputIdx + kPairCount + kChunkSize16 * 1]);
+                    auto i2_2 = load(&inputs[inputIdx + kPairCount + kChunkSize16 * 2]);
+                    auto i2_3 = load(&inputs[inputIdx + kPairCount + kChunkSize16 * 3]);
 
                     i1_0 = _mm256_min_epi16(i1_0, ftOne);
                     i1_1 = _mm256_min_epi16(i1_1, ftOne);
