@@ -199,6 +199,12 @@ namespace stoat::protocol {
             next = 1;
         } else {
             const auto count = std::distance(args.begin(), std::ranges::find(args, "moves"));
+
+            if (count == 0) {
+                fmt::println(stderr, "Missing position");
+                return;
+            }
+
             if (auto parsed = parsePosition(args.subspan(0, count))) {
                 m_state.pos = parsed.take();
                 m_state.keyHistory.clear();
