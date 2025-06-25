@@ -630,8 +630,12 @@ namespace stoat {
                 goto skipSearch;
             }
 
-            if (extension == 0 && givesCheck) {
-                extension = 1;
+            if (extension == 0) {
+                if (givesCheck) {
+                    extension = 1;
+                } else if (move.isPromo()) {
+                    extension = 1;
+                }
             }
 
             newDepth += extension;
