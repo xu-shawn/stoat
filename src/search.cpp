@@ -634,7 +634,10 @@ namespace stoat {
                 if (givesCheck) {
                     extension = 1;
                 } else if (move.isPromo()) {
-                    extension = 1;
+                    auto movedPieceType = pos.pieceOn(move.from()).type();
+                    if (movedPieceType == PieceTypes::kBishop || movedPieceType == PieceTypes::kRook) {
+                        extension = 1;
+                    }
                 }
             }
 
