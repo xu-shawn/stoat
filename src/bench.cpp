@@ -23,6 +23,7 @@
 
 #include "position.h"
 #include "search.h"
+#include "stats.h"
 
 namespace stoat::bench {
     namespace {
@@ -66,5 +67,7 @@ namespace stoat::bench {
 
         fmt::println("{:.5g} seconds", totalTime);
         fmt::println("{} nodes {} nps", totalNodes, nps);
+
+        stats::print();
     }
 } // namespace stoat::bench

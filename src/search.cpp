@@ -27,6 +27,7 @@
 #include "movepick.h"
 #include "protocol/handler.h"
 #include "see.h"
+#include "stats.h"
 #include "util/multi_array.h"
 
 namespace stoat {
@@ -408,6 +409,7 @@ namespace stoat {
             waitForThreads();
 
             finalReport(m_startTime.elapsed());
+            stats::print();
 
             m_searching = false;
         } else {
