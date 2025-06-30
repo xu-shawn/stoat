@@ -50,6 +50,7 @@ namespace stoat {
     };
 
     struct RootMove {
+        Score displayScore{-kScoreInf};
         Score score{-kScoreInf};
 
         bool upperbound{false};
@@ -109,6 +110,7 @@ namespace stoat {
 
         eval::nnue::NnueState nnueState{};
 
+        u32 pvIdx{};
         std::vector<RootMove> rootMoves{};
 
         std::vector<StackFrame> stack{};

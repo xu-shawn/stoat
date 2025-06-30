@@ -59,7 +59,7 @@ namespace stoat {
     }
 
     RootMove* ThreadData::findRootMove(stoat::Move move) {
-        for (u32 idx = 0; idx < rootMoves.size(); ++idx) {
+        for (u32 idx = pvIdx; idx < rootMoves.size(); ++idx) {
             auto& rootMove = rootMoves[idx];
             assert(rootMove.pv.length > 0);
 

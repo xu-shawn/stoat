@@ -47,6 +47,7 @@ namespace stoat::protocol {
     void UsiHandler::printOptionName(std::string_view name) const {
         static constexpr std::array kFixedSemanticsOptions = {
             "Hash",
+            "MultiPV",
         };
 
         if (std::ranges::find(kFixedSemanticsOptions, name) != kFixedSemanticsOptions.end()) {

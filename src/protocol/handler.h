@@ -62,6 +62,8 @@ namespace stoat::protocol {
     };
 
     struct SearchInfo {
+        u32 pvIdx{0};
+        u32 multiPv{1};
         i32 depth;
         std::optional<i32> seldepth{};
         std::optional<f64> timeSec{};

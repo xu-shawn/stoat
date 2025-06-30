@@ -140,6 +140,11 @@ namespace stoat {
         m_ttable.resize(mib);
     }
 
+    void Searcher::setMultiPv(u32 multiPv) {
+        assert(!isSearching());
+        m_targetMultiPv = multiPv;
+    }
+
     void Searcher::setCuteChessWorkaround(bool enabled) {
         assert(!isSearching());
         m_cuteChessWorkaround = enabled;
@@ -194,6 +199,8 @@ namespace stoat {
         m_rootMoveList = rootMoves;
         assert(!m_rootMoveList.empty());
 
+        m_multiPv = std::min<u32>(m_targetMultiPv, m_rootMoveList.size());
+
         for (auto& thread : m_threads) {
             thread.reset(pos, keyHistory);
             thread.maxDepth = maxDepth;
@@ -233,6 +240,8 @@ namespace stoat {
         auto currLimiter = std::move(m_limiter);
 
         m_limiter = std::make_unique<limit::CompoundLimiter>();
+
+        m_multiPv = 1;
         m_infinite = false;
 
         auto& thread = m_threads[0];
@@ -274,6 +283,8 @@ namespace stoat {
         const bool wasInfinite = m_infinite;
 
         m_silent = true;
+
+        m_multiPv = 1;
         m_infinite = false;
 
         m_stop.store(false);
@@ -337,22 +348,54 @@ namespace stoat {
 
         for (i32 depth = 1;; ++depth) {
             thread.rootDepth = depth;
-            thread.resetSeldepth();
 
-            i32 window = 20;
+            for (thread.pvIdx = 0; thread.pvIdx < m_multiPv; ++thread.pvIdx) {
+                thread.resetSeldepth();
 
-            auto alpha = -kScoreInf;
-            auto beta = kScoreInf;
+                i32 window = 20;
 
-            if (depth >= 3) {
-                alpha = std::max(thread.pvMove().score - window, -kScoreInf);
-                beta = std::min(thread.pvMove().score + window, kScoreInf);
-            }
+                auto alpha = -kScoreInf;
+                auto beta = kScoreInf;
 
-            Score score;
+                if (depth >= 3) {
+                    alpha = std::max(thread.pvMove().score - window, -kScoreInf);
+                    beta = std::min(thread.pvMove().score + window, kScoreInf);
+                }
 
-            while (true) {
-                score = search<true, true>(thread, thread.rootPos, rootPv, depth, 0, alpha, beta, false);
+                Score score;
+
+                while (true) {
+                    score = search<true, true>(thread, thread.rootPos, rootPv, depth, 0, alpha, beta, false);
+
+                    std::stable_sort(
+                        thread.rootMoves.begin() + thread.pvIdx,
+                        thread.rootMoves.end(),
+                        [](const RootMove& a, const RootMove& b) { return a.score > b.score; }
+                    );
+
+                    if (hasStopped()) {
+                        break;
+                    }
+
+                    if (score > alpha && score < beta) {
+                        break;
+                    }
+
+                    if (thread.isMainThread()) {
+                        const auto time = m_startTime.elapsed();
+                        if (time >= kWideningReportDelay) {
+                            reportSingle(thread, thread.pvIdx, depth, time);
+                        }
+                    }
+
+                    if (score <= alpha) {
+                        alpha = std::max(score - window, -kScoreInf);
+                    } else { // score >= beta
+                        beta = std::min(score + window, kScoreInf);
+                    }
+
+                    window += window;
+                }
 
                 std::ranges::stable_sort(thread.rootMoves, [](const RootMove& a, const RootMove& b) {
                     return a.score > b.score;
@@ -361,25 +404,6 @@ namespace stoat {
                 if (hasStopped()) {
                     break;
                 }
-
-                if (score > alpha && score < beta) {
-                    break;
-                }
-
-                if (thread.isMainThread()) {
-                    const auto time = m_startTime.elapsed();
-                    if (time >= kWideningReportDelay) {
-                        report(thread, depth, time);
-                    }
-                }
-
-                if (score <= alpha) {
-                    alpha = std::max(score - window, -kScoreInf);
-                } else { // score >= beta
-                    beta = std::min(score + window, kScoreInf);
-                }
-
-                window += window;
             }
 
             if (hasStopped()) {
@@ -695,6 +719,7 @@ namespace stoat {
                 if (legalMoves == 1 || score > alpha) {
                     rootMove->seldepth = thread.loadSeldepth();
 
+                    rootMove->displayScore = score;
                     rootMove->score = score;
 
                     rootMove->upperbound = false;
@@ -862,21 +887,20 @@ namespace stoat {
         return bestScore;
     }
 
-    void Searcher::report(const ThreadData& bestThread, i32 depth, f64 time) {
+    void Searcher::reportSingle(const ThreadData& bestThread, u32 pvIdx, i32 depth, f64 time) {
         if (m_silent) {
             return;
         }
 
-        const auto& move = bestThread.pvMove();
+        const auto& move = bestThread.rootMoves[pvIdx];
 
-        auto score = move.score;
+        auto score = move.score == -kScoreInf ? move.displayScore : move.score;
+        depth = move.score == -kScoreInf ? std::max(1, depth - 1) : depth;
 
         usize totalNodes = 0;
-        i32 maxSeldepth = 0;
 
         for (const auto& thread : m_threads) {
             totalNodes += thread.loadNodes();
-            maxSeldepth = std::max(maxSeldepth, thread.loadSeldepth());
         }
 
         auto bound = protocol::ScoreBound::kExact;
@@ -905,8 +929,10 @@ namespace stoat {
         }
 
         const protocol::SearchInfo info = {
+            .pvIdx = pvIdx,
+            .multiPv = m_multiPv,
             .depth = depth,
-            .seldepth = maxSeldepth,
+            .seldepth = move.seldepth,
             .timeSec = time,
             .nodes = totalNodes,
             .score = displayScore,
@@ -916,6 +942,12 @@ namespace stoat {
         };
 
         protocol::currHandler().printSearchInfo(info);
+    }
+
+    void Searcher::report(const ThreadData& bestThread, i32 depth, f64 time) {
+        for (u32 pvIdx = 0; pvIdx < m_multiPv; ++pvIdx) {
+            reportSingle(bestThread, pvIdx, depth, time);
+        }
     }
 
     void Searcher::finalReport(f64 time) {

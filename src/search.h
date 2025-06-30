@@ -41,6 +41,9 @@ namespace stoat {
     constexpr u32 kDefaultThreadCount = 1;
     constexpr util::Range<u32> kThreadCountRange{1, 2048};
 
+    constexpr u32 kDefaultMultiPv = 1;
+    constexpr util::Range<u32> kMultiPvRange{1, 600};
+
     struct BenchInfo {
         usize nodes{};
         f64 time{};
@@ -56,6 +59,7 @@ namespace stoat {
 
         void setThreadCount(u32 threadCount);
         void setTtSize(usize mib);
+        void setMultiPv(u32 multipv);
         void setCuteChessWorkaround(bool enabled);
 
         void setLimiter(std::unique_ptr<limit::ISearchLimiter> limiter);
@@ -112,6 +116,9 @@ namespace stoat {
         bool m_infinite{};
         std::unique_ptr<limit::ISearchLimiter> m_limiter{};
 
+        u32 m_targetMultiPv{kDefaultMultiPv};
+        u32 m_multiPv{};
+
         movegen::MoveList m_rootMoveList{};
 
         tt::TTable m_ttable;
@@ -159,6 +166,8 @@ namespace stoat {
 
         template <bool kPvNode = false>
         Score qsearch(ThreadData& thread, const Position& pos, i32 ply, Score alpha, Score beta);
+
+        void reportSingle(const ThreadData& bestThread, u32 pvIdx, i32 depth, f64 time);
 
         void report(const ThreadData& bestThread, i32 depth, f64 time);
         void finalReport(f64 time);

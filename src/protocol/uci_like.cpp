@@ -70,6 +70,10 @@ namespace stoat::protocol {
         );
 
         fmt::print("option name ");
+        printOptionName("MultiPV");
+        fmt::println(" type spin default {} min {} max {}", kDefaultMultiPv, kMultiPvRange.min(), kMultiPvRange.max());
+
+        fmt::print("option name ");
         printOptionName("MoveOverhead");
         fmt::println(
             " type spin default {} min {} max {}",
@@ -103,7 +107,13 @@ namespace stoat::protocol {
     }
 
     void UciLikeHandler::printSearchInfo(const SearchInfo& info) const {
-        fmt::print("info depth {}", info.depth);
+        fmt::print("info");
+
+        if (info.multiPv > 1) {
+            fmt::print(" multipv {}", info.pvIdx + 1);
+        }
+
+        fmt::print(" depth {}", info.depth);
 
         if (info.seldepth) {
             fmt::print(" seldepth {}", *info.seldepth);
@@ -485,6 +495,13 @@ namespace stoat::protocol {
                 m_state.searcher->setThreadCount(threadCount);
             } else {
                 fmt::println(stderr, "Invalid thread count '{}'", value);
+            }
+        } else if (name == "multipv") {
+            if (const auto newMultiPv = util::tryParse<u32>(value)) {
+                const auto multiPv = kMultiPvRange.clamp(*newMultiPv);
+                m_state.searcher->setMultiPv(multiPv);
+            } else {
+                fmt::println(stderr, "Invalid multiPV count '{}'", value);
             }
         } else if (name == "moveoverhead") {
             if (const auto newMoveOverhead = util::tryParse<u32>(value)) {
