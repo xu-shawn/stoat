@@ -531,6 +531,9 @@ namespace stoat {
             curr.staticEval = pos.isInCheck() ? kScoreNone : eval::staticEval(pos, thread.nnueState);
         }
 
+        const auto ttMove =
+            (kRootNode && thread.rootDepth > 1) ? thread.rootMoves[thread.pvIdx].pv.moves[0] : ttEntry.move;
+
         const bool improving = [&] {
             if (pos.isInCheck()) {
                 return false;
@@ -574,7 +577,7 @@ namespace stoat {
 
         auto ttFlag = tt::Flag::kUpperBound;
 
-        auto generator = MoveGenerator::main(pos, ttEntry.move, thread.history);
+        auto generator = MoveGenerator::main(pos, ttMove, thread.history);
 
         util::StaticVector<Move, 64> nonCapturesTried{};
 
@@ -625,7 +628,7 @@ namespace stoat {
 
             i32 extension{};
 
-            if (!kRootNode && depth >= 7 && ply < thread.rootDepth * 2 && move == ttEntry.move && !curr.excluded
+            if (!kRootNode && depth >= 7 && ply < thread.rootDepth * 2 && move == ttMove && !curr.excluded
                 && ttEntry.depth >= depth - 3 && ttEntry.flag != tt::Flag::kUpperBound)
             {
                 const auto sBeta = std::max(-kScoreInf + 1, ttEntry.score - depth * 4 / 3);
@@ -779,7 +782,7 @@ namespace stoat {
             }
         }
 
-        if (!curr.excluded) {
+        if (!curr.excluded && (!kRootNode || thread.pvIdx == 0)) {
             m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag);
         }
 
