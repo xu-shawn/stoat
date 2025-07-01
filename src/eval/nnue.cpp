@@ -47,7 +47,7 @@ namespace stoat::eval::nnue {
         struct Network {
             alignas(64) util::MultiArray<i16, kFtSize, kL1Size> ftWeights;
             alignas(64) util::MultiArray<i16, kL1Size> ftBiases;
-            alignas(64) util::MultiArray<i8, kL1Size, kL2Size> l1Weights;
+            alignas(64) util::MultiArray<i8, kL1Size * kL2Size> l1Weights;
             alignas(64) util::MultiArray<i32, kL2Size> l1Biases;
             alignas(64) util::MultiArray<i32, kL2Size * 2, kL3Size> l2Weights;
             alignas(64) util::MultiArray<i32, kL3Size> l2Biases;
@@ -176,10 +176,14 @@ namespace stoat::eval::nnue {
                 for (usize outputIdx = 0; outputIdx < kL2Size; outputIdx += kChunkSize32) {
                     auto& v = intermediate[outputIdx / kChunkSize32];
 
-                    const auto w_0 = load(&s_network.l1Weights[inputIdx][k32ChunkSize8 * (outputIdx + kL2Size * 0)]);
-                    const auto w_1 = load(&s_network.l1Weights[inputIdx][k32ChunkSize8 * (outputIdx + kL2Size * 1)]);
-                    const auto w_2 = load(&s_network.l1Weights[inputIdx][k32ChunkSize8 * (outputIdx + kL2Size * 2)]);
-                    const auto w_3 = load(&s_network.l1Weights[inputIdx][k32ChunkSize8 * (outputIdx + kL2Size * 3)]);
+                    const auto w_0 =
+                        load(&s_network.l1Weights[weightsStart + k32ChunkSize8 * (outputIdx + kL2Size * 0)]);
+                    const auto w_1 =
+                        load(&s_network.l1Weights[weightsStart + k32ChunkSize8 * (outputIdx + kL2Size * 1)]);
+                    const auto w_2 =
+                        load(&s_network.l1Weights[weightsStart + k32ChunkSize8 * (outputIdx + kL2Size * 2)]);
+                    const auto w_3 =
+                        load(&s_network.l1Weights[weightsStart + k32ChunkSize8 * (outputIdx + kL2Size * 3)]);
 
                     v[0] = dpbusd(v[0], i_0, w_0);
                     v[1] = dpbusd(v[1], i_1, w_1);
