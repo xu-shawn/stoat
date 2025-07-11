@@ -545,6 +545,16 @@ namespace stoat {
             curr.staticEval = pos.isInCheck() ? kScoreNone : eval::staticEval(pos, thread.nnueState);
         }
 
+        const auto complexity = [&] {
+            if (ttEntry.flag == tt::Flag::kExact                                             //
+                || ttEntry.flag == tt::Flag::kUpperBound && ttEntry.score <= curr.staticEval //
+                || ttEntry.flag == tt::Flag::kLowerBound && ttEntry.score >= curr.staticEval)
+            {
+                return std::abs(curr.staticEval - ttEntry.score);
+            }
+            return 0;
+        }();
+
         const auto ttMove =
             (kRootNode && thread.rootDepth > 1) ? thread.rootMoves[thread.pvIdx].pv.moves[0] : ttEntry.move;
 
@@ -561,7 +571,7 @@ namespace stoat {
             return true;
         }();
 
-        if (!kPvNode && !pos.isInCheck() && !curr.excluded) {
+        if (!kPvNode && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
             if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
