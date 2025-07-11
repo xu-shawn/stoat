@@ -519,7 +519,8 @@ namespace stoat {
         }
 
         if (ply >= kMaxDepth) {
-            return pos.isInCheck() ? 0 : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory);
+            return pos.isInCheck() ? 0
+                                   : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory, ply);
         }
 
         auto& curr = thread.stack[ply];
@@ -545,7 +546,7 @@ namespace stoat {
 
             curr.staticEval = pos.isInCheck()
                                 ? kScoreNone
-                                : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory);
+                                : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory, ply);
         }
 
         const bool ttPv = ttEntry.pv || kPvNode;
@@ -876,7 +877,8 @@ namespace stoat {
         }
 
         if (ply >= kMaxDepth) {
-            return pos.isInCheck() ? 0 : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory);
+            return pos.isInCheck() ? 0
+                                   : eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory, ply);
         }
 
         Score staticEval;
@@ -884,7 +886,7 @@ namespace stoat {
         if (pos.isInCheck()) {
             staticEval = -kScoreMate + ply;
         } else {
-            staticEval = eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory);
+            staticEval = eval::correctedStaticEval(pos, thread.nnueState, thread.correctionHistory, ply);
 
             if (staticEval >= beta) {
                 return staticEval;
