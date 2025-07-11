@@ -573,7 +573,7 @@ namespace stoat {
             return true;
         }();
 
-        if (!kPvNode && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
+        if (!ttPV && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
             if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
@@ -720,7 +720,6 @@ namespace stoat {
                 r -= move.isDrop() && Square::chebyshev(move.to(), pos.kingSq(pos.stm().flip())) < 3;
                 r += !improving;
                 r -= history / 8192;
-                r -= ttPV;
 
                 const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                 score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha, true);
