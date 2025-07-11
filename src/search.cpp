@@ -679,6 +679,8 @@ namespace stoat {
                 {
                     extension = 1;
                 }
+            } else if (move == ttMove && complexity >= 20) {
+                extension = 1;
             }
 
             m_ttable.prefetch(pos.keyAfter(move));
