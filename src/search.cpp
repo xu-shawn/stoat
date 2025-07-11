@@ -545,7 +545,7 @@ namespace stoat {
             curr.staticEval = pos.isInCheck() ? kScoreNone : eval::staticEval(pos, thread.nnueState);
         }
 
-        const bool ttPV = ttEntry.pv || kPvNode;
+        const bool ttPv = ttEntry.pv || kPvNode;
 
         const auto complexity = [&] {
             if (ttEntry.flag == tt::Flag::kExact                                             //
@@ -573,7 +573,7 @@ namespace stoat {
             return true;
         }();
 
-        if (!ttPV && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
+        if (!ttPv && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
             if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
@@ -835,7 +835,7 @@ namespace stoat {
         }
 
         if (!curr.excluded && (!kRootNode || thread.pvIdx == 0)) {
-            m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag, ttPV);
+            m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag, ttPv);
         }
 
         return bestScore;
