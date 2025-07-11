@@ -545,6 +545,8 @@ namespace stoat {
             curr.staticEval = pos.isInCheck() ? kScoreNone : eval::staticEval(pos, thread.nnueState);
         }
 
+        const bool ttPV = ttEntry.pv || kPvNode;
+
         const auto complexity = [&] {
             if (ttEntry.flag == tt::Flag::kExact                                             //
                 || ttEntry.flag == tt::Flag::kUpperBound && ttEntry.score <= curr.staticEval //
@@ -718,6 +720,7 @@ namespace stoat {
                 r -= move.isDrop() && Square::chebyshev(move.to(), pos.kingSq(pos.stm().flip())) < 3;
                 r += !improving;
                 r -= history / 8192;
+                r -= ttPV;
 
                 const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                 score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha, true);
@@ -833,7 +836,7 @@ namespace stoat {
         }
 
         if (!curr.excluded && (!kRootNode || thread.pvIdx == 0)) {
-            m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag);
+            m_ttable.put(pos.key(), bestScore, bestMove, depth, ply, ttFlag, ttPV);
         }
 
         return bestScore;
