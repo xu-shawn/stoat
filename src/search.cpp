@@ -632,7 +632,9 @@ namespace stoat {
             const auto baseLmr = s_lmrTable[depth][std::min<u32>(legalMoves, kLmrTableMoves - 1)];
             const auto history = pos.isCapture(move) ? 0 : thread.history.mainNonCaptureScore(move);
 
-            if (!kRootNode && bestScore > -kScoreWin && (!kPvNode || !thread.datagen)) {
+            if (!kRootNode && bestScore > -kScoreWin && bestScore > curr.staticEval - 15
+                && (!kPvNode || !thread.datagen))
+            {
                 if (legalMoves >= kLmpTable[improving][std::min<usize>(depth, kLmpTableSize - 1)]) {
                     generator.skipNonCaptures();
                 }
