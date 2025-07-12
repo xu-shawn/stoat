@@ -78,6 +78,7 @@ namespace stoat {
     struct PositionKeys {
         u64 all{};
         u64 castle{};
+        u64 major{};
 
         void clear();
 
@@ -178,6 +179,10 @@ namespace stoat {
 
         [[nodiscard]] inline u64 castleKey() const {
             return m_keys.castle;
+        }
+
+        [[nodiscard]] inline u64 majorKey() const {
+            return m_keys.major;
         }
 
         [[nodiscard]] u64 keyAfter(Move move) const;

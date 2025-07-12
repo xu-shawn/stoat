@@ -157,6 +157,7 @@ namespace stoat {
     void PositionKeys::clear() {
         all = 0;
         castle = 0;
+        major = 0;
     }
 
     void PositionKeys::flipPiece(Piece piece, Square sq) {
@@ -171,6 +172,10 @@ namespace stoat {
             || piece.type() == PieceTypes::kGold)
         {
             castle ^= key;
+        } else if (piece.type() == PieceTypes::kBishop || piece.type() == PieceTypes::kRook
+                   || piece.type() == PieceTypes::kPromotedBishop || piece.type() == PieceTypes::kPromotedRook)
+        {
+            major ^= key;
         }
     }
 
@@ -187,6 +192,10 @@ namespace stoat {
             || piece.type() == PieceTypes::kGold)
         {
             castle ^= key;
+        } else if (piece.type() == PieceTypes::kBishop || piece.type() == PieceTypes::kRook
+                   || piece.type() == PieceTypes::kPromotedBishop || piece.type() == PieceTypes::kPromotedRook)
+        {
+            major ^= key;
         }
     }
 
@@ -199,7 +208,14 @@ namespace stoat {
         assert(pt);
         assert(count <= maxPiecesInHand(pt));
 
-        all ^= keys::pieceInHand(c, pt, count);
+        const auto key = keys::pieceInHand(c, pt, count);
+
+        all ^= key;
+
+        if (pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
+        {
+            major ^= key;
+        }
     }
 
     void PositionKeys::switchHandCount(Color c, PieceType pt, u32 before, u32 after) {
@@ -208,7 +224,14 @@ namespace stoat {
         assert(before <= maxPiecesInHand(pt));
         assert(after <= maxPiecesInHand(pt));
 
-        all ^= keys::pieceInHand(c, pt, before) ^ keys::pieceInHand(c, pt, after);
+        const auto key = keys::pieceInHand(c, pt, before) ^ keys::pieceInHand(c, pt, after);
+
+        all ^= key;
+
+        if (pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
+        {
+            major ^= key;
+        }
     }
 
     template Position Position::applyMove<NnueUpdateAction::kNone>(Move, eval::nnue::NnueState*) const;
@@ -371,7 +394,8 @@ namespace stoat {
         score += 5 * (promoZone & bishopsRooks).popcount();
         score += (promoZone & colorBb(stm) ^ king ^ bishopsRooks).popcount();
         score += hand.count(PieceTypes::kPawn) + hand.count(PieceTypes::kLance) + hand.count(PieceTypes::kKnight)
-               + hand.count(PieceTypes::kSilver) + hand.count(PieceTypes::kGold) + (hand.count(PieceTypes::kBishop) + hand.count(PieceTypes::kRook)) * 5;
+               + hand.count(PieceTypes::kSilver) + hand.count(PieceTypes::kGold)
+               + 5 * (hand.count(PieceTypes::kBishop) + hand.count(PieceTypes::kRook));
         score += stm == Colors::kWhite;
 
         return score >= 28;
