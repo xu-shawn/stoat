@@ -577,6 +577,10 @@ namespace stoat {
         }();
 
         if (!ttPv && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
+            if (parent && depth >= 2 && parent->reduction >= 1 && curr.staticEval + parent->staticEval >= 200) {
+                depth--;
+            }
+
             if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
@@ -725,7 +729,9 @@ namespace stoat {
                 r -= history / 8192;
 
                 const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
+                curr.reduction = newDepth - reduced;
                 score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha, true);
+                curr.reduction = 0;
 
                 if (score > alpha && reduced < newDepth) {
                     score = -search(thread, newPos, curr.pv, newDepth, ply + 1, -alpha - 1, -alpha, !expectedCutnode);
