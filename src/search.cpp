@@ -578,7 +578,7 @@ namespace stoat {
         }();
 
         if (!ttPv && !pos.isInCheck() && !curr.excluded && complexity <= 20) {
-            if (parent && depth >= 2 && parent->reduction >= 1 && curr.staticEval + parent->staticEval >= 200) {
+            if (parent && depth >= 2 && parent->reduction >= 1 && curr.staticEval + parent->staticEval >= 90) {
                 depth--;
             }
 
