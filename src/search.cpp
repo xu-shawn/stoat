@@ -724,7 +724,7 @@ namespace stoat {
             {
                 auto r = baseLmr;
 
-                r += !kPvNode;
+                r += !ttPv;
                 r -= pos.isInCheck();
                 r -= move.isDrop() && Square::chebyshev(move.to(), pos.kingSq(pos.stm().flip())) < 3;
                 r += !improving;
