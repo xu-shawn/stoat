@@ -732,7 +732,7 @@ namespace stoat {
                 r -= pos.isInCheck();
                 r -= move.isDrop() && Square::chebyshev(move.to(), pos.kingSq(pos.stm().flip())) < 3;
                 r += !improving;
-                r -= history / 8192;
+                r -= history / 4096;
 
                 const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
                 curr.reduction = newDepth - reduced;
