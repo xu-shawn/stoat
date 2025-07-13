@@ -688,7 +688,9 @@ namespace stoat {
                 {
                     extension = 1;
                 }
-            } else if (kPvNode && pos.isCapture(move) && thread.history.captureScore() > 2000) {
+            } else if (kPvNode && pos.isCapture(move)
+                       && thread.history.captureScore(move, pieceOn(move.to()).type()) > 2000)
+            {
                 extension = 1;
             }
 
