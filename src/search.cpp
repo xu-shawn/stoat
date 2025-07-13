@@ -688,6 +688,8 @@ namespace stoat {
                 {
                     extension = 1;
                 }
+            } else if (kPvNode && pos.isCapture(move) && thread.history.captureScore() > 2000) {
+                extension = 1;
             }
 
             m_ttable.prefetch(pos.keyAfter(move));
