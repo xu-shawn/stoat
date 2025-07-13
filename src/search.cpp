@@ -743,6 +743,9 @@ namespace stoat {
             }
 
             if (kPvNode && (legalMoves == 1 || score > alpha)) {
+                if (move == ttMove && thread.rootDepth >= 8) {
+                    newDepth = std::max(newDepth, 1);
+                }
                 score = -search<true>(thread, newPos, curr.pv, newDepth, ply + 1, -beta, -alpha, false);
             }
 
