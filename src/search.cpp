@@ -583,6 +583,10 @@ namespace stoat {
                 depth--;
             }
 
+            if (parent && parent->reduction >= 3 && curr.staticEval + parent->staticEval <= 0) {
+                depth++;
+            }
+
             if (depth <= 10 && curr.staticEval - 80 * (depth - improving) >= beta) {
                 return curr.staticEval;
             }
