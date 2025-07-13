@@ -367,8 +367,9 @@ namespace stoat {
                 auto beta = kScoreInf;
 
                 if (depth >= 3) {
-                    alpha = std::max(thread.pvMove().score - window, -kScoreInf);
-                    beta = std::min(thread.pvMove().score + window, kScoreInf);
+                    const auto lastScore = thread.rootMoves[thread.pvIdx].score;
+                    alpha = std::max(lastScore - window, -kScoreInf);
+                    beta = std::min(lastScore + window, kScoreInf);
                 }
 
                 Score score;
@@ -772,10 +773,10 @@ namespace stoat {
                     rootMove->lowerbound = false;
 
                     if (score <= alpha) {
-                        rootMove->score = alpha;
+                        rootMove->displayScore = alpha;
                         rootMove->upperbound = true;
                     } else if (score >= beta) {
-                        rootMove->score = beta;
+                        rootMove->displayScore = beta;
                         rootMove->lowerbound = true;
                     }
 
