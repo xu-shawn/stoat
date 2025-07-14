@@ -55,6 +55,6 @@ namespace stoat {
         };
 
         util::MultiArray<Entry, 2, kEntries> m_castleTable{};
-        util::MultiArray<Entry, 2, kEntries> m_majorTable{};
+        util::MultiArray<Entry, 2, kEntries> m_cavalryTable{};
     };
 } // namespace stoat

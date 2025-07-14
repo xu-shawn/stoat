@@ -157,7 +157,7 @@ namespace stoat {
     void PositionKeys::clear() {
         all = 0;
         castle = 0;
-        major = 0;
+        cavalry = 0;
     }
 
     void PositionKeys::flipPiece(Piece piece, Square sq) {
@@ -172,10 +172,11 @@ namespace stoat {
             || piece.type() == PieceTypes::kGold)
         {
             castle ^= key;
-        } else if (piece.type() == PieceTypes::kBishop || piece.type() == PieceTypes::kRook
-                   || piece.type() == PieceTypes::kPromotedBishop || piece.type() == PieceTypes::kPromotedRook)
+        } else if (piece.type() == PieceTypes::kKnight || piece.type() == PieceTypes::kBishop
+                   || piece.type() == PieceTypes::kRook || piece.type() == PieceTypes::kPromotedBishop
+                   || piece.type() == PieceTypes::kPromotedRook)
         {
-            major ^= key;
+            cavalry ^= key;
         }
     }
 
@@ -192,10 +193,11 @@ namespace stoat {
             || piece.type() == PieceTypes::kGold)
         {
             castle ^= key;
-        } else if (piece.type() == PieceTypes::kBishop || piece.type() == PieceTypes::kRook
-                   || piece.type() == PieceTypes::kPromotedBishop || piece.type() == PieceTypes::kPromotedRook)
+        } else if (piece.type() == PieceTypes::kKnight || piece.type() == PieceTypes::kBishop
+                   || piece.type() == PieceTypes::kRook || piece.type() == PieceTypes::kPromotedBishop
+                   || piece.type() == PieceTypes::kPromotedRook)
         {
-            major ^= key;
+            cavalry ^= key;
         }
     }
 
@@ -212,9 +214,9 @@ namespace stoat {
 
         all ^= key;
 
-        if (pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
+        if (pt == PieceTypes::kKnight || pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
         {
-            major ^= key;
+            cavalry ^= key;
         }
     }
 
@@ -228,9 +230,9 @@ namespace stoat {
 
         all ^= key;
 
-        if (pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
+        if (pt == PieceTypes::kKnight || pt == PieceTypes::kBishop || pt == PieceTypes::kRook)
         {
-            major ^= key;
+            cavalry ^= key;
         }
     }
 
