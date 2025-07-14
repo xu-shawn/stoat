@@ -675,9 +675,13 @@ namespace stoat {
             const auto baseLmr = s_lmrTable[depth][std::min<u32>(legalMoves, kLmrTableMoves - 1)];
             const auto history = pos.isCapture(move) ? 0 : thread.history.mainNonCaptureScore(move);
 
-            if (!kRootNode && bestScore > -kScoreWin && (!kPvNode || !thread.datagen)) {
+            const auto [newPos, guard] = thread.applyMove(ply, pos, move);
+
+            const bool givesCheck = newPos.isInCheck();
+
+            if (!kRootNode && bestScore > -kScoreWin && !givesCheck && (!kPvNode || !thread.datagen)) {
                 if (legalMoves >= kLmpTable[improving][std::min<usize>(depth, kLmpTableSize - 1)]) {
-                    generator.skipNonCaptures();
+                    continue;
                 }
 
                 const auto seeThreshold = pos.isCapture(move) ? -100 * depth * depth : -20 * depth * depth;
@@ -729,13 +733,9 @@ namespace stoat {
 
             m_ttable.prefetch(pos.keyAfter(move));
 
-            const auto [newPos, guard] = thread.applyMove(ply, pos, move);
-            const auto sennichite = newPos.testSennichite(m_cuteChessWorkaround, thread.keyHistory);
-
-            const bool givesCheck = newPos.isInCheck();
-
             auto newDepth = depth - 1;
 
+            const auto sennichite = newPos.testSennichite(m_cuteChessWorkaround, thread.keyHistory);
             Score score;
 
             if (sennichite == SennichiteStatus::kWin) {
