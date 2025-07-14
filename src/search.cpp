@@ -87,6 +87,35 @@ namespace stoat {
         [[nodiscard]] constexpr bool isWin(Score score) {
             return std::abs(score) > kScoreWin;
         }
+
+        [[nodiscard]] bool isUnlikelyMove(const Position& pos, Move move) {
+            const auto pt = pos.pieceOn(move.from()).type();
+            const auto promoArea = Bitboards::promoArea(pos.stm());
+
+            if (move.isDrop() || move.isPromo()) {
+                return false;
+            }
+
+            if (pt != PieceTypes::kPawn && pt != PieceTypes::kLance && pt != PieceTypes::kBishop
+                && pt != PieceTypes::kRook)
+            {
+                return false;
+            }
+
+            if (promoArea.getSquare(move.from())) {
+                return true;
+            }
+
+            if (pt != PieceTypes::kLance && promoArea.getSquare(move.to())) {
+                return true;
+            }
+
+            if (pt == PieceTypes::kLance && move.to().relative(pos.stm()).rank() == 7) {
+                return true;
+            }
+
+            return false;
+        }
     } // namespace
 
     Searcher::Searcher(usize ttSizeMb) :
@@ -639,6 +668,10 @@ namespace stoat {
                 continue;
             }
 
+            if (isUnlikelyMove(pos, move) && curr.staticEval - 500 <= alpha) {
+                continue;
+            }
+
             const auto baseLmr = s_lmrTable[depth][std::min<u32>(legalMoves, kLmrTableMoves - 1)];
             const auto history = pos.isCapture(move) ? 0 : thread.history.mainNonCaptureScore(move);
 
@@ -734,7 +767,7 @@ namespace stoat {
                 r += !improving;
                 r -= history / 8192;
 
-                const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1);
+                const auto reduced = std::min(std::max(newDepth - r, 1), newDepth - 1) + kPvNode;
                 curr.reduction = newDepth - reduced;
                 score = -search(thread, newPos, curr.pv, reduced, ply + 1, -alpha - 1, -alpha, true);
                 curr.reduction = 0;
@@ -917,7 +950,7 @@ namespace stoat {
         while (const auto move = generator.next()) {
             assert(pos.isPseudolegal(move));
 
-            if (!pos.isLegal(move)) {
+            if (!pos.isLegal(move) || isUnlikelyMove(pos, move)) {
                 continue;
             }
 
