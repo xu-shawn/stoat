@@ -41,7 +41,7 @@ namespace stoat {
 
             for (i32 improving = 0; improving < 2; ++improving) {
                 for (i32 depth = 0; depth < kLmpTableSize; ++depth) {
-                    result[improving][depth] = (4 + 2 * depth * depth) / (2 - improving);
+                    result[improving][depth] = (4 + 3 * depth * depth) / (2 - improving);
                 }
             }
 
