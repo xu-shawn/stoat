@@ -49,7 +49,7 @@ namespace stoat::protocol {
 
     void UciLikeHandler::printInitialInfo() const {
         fmt::println("id name {} {}", kName, kVersion);
-        fmt::println("id author {}", kAuthor);
+        fmt::println("id author {}", kAuthors);
 
         fmt::print("option name ");
         printOptionName("Hash");

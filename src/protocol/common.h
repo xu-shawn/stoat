@@ -25,5 +25,5 @@
 namespace stoat::protocol {
     constexpr std::string_view kName = "Stoat";
     constexpr std::string_view kVersion = ST_STRINGIFY(ST_VERSION);
-    constexpr std::string_view kAuthor = "Ciekce";
+    constexpr std::string_view kAuthors = "Ciekce and Kazuki Yamashita";
 } // namespace stoat::protocol
